@@ -1,0 +1,11 @@
+{
+  "policy_version": 1,
+  "default_level": 1,
+  "levels": {
+    "Dig Now": 1
+  },
+  "level3": {
+    "max_wait_s": 3600,
+    "default_fallback": "abort"
+  }
+}

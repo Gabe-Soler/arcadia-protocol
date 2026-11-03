@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/Gabe-Soler/arcadia-protocol/v0.1.0/schemas/robot_state.schema.json",
+  "title": "Robot state",
+  "description": "Dynamic state of one robot. Health telemetry as seen by the coordinator is noisy; ground-truth states appear only in the event log.",
+  "$ref": "#/$defs/RobotState",
+  "$defs": {
+    "RobotStatus": {
+      "enum": ["idle", "moving", "working", "charging", "stuck", "failed", "being_towed", "offline"]
+    },
+    "HealthTelemetry": {
+      "type": "object",
+      "properties": {
+        "wheel_slip": { "description": "Fraction of commanded wheel travel lost to slip.", "type": "number", "minimum": 0, "maximum": 1 },
+        "motor_current_ratio": { "description": "Drive current relative to nominal (1.0 = new).", "type": "number", "minimum": 0 },
+        "dust_coverage": { "description": "Fraction of joints and panels covered by dust.", "type": "number", "minimum": 0, "maximum": 1 },
+        "temperature_c": { "type": "number" }
+      },
+      "required": ["wheel_slip", "motor_current_ratio", "dust_coverage", "temperature_c"],
+      "additionalProperties": false
+    },
+    "RobotState": {
+      "type": "object",
+      "properties": {
+        "robot_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "position": { "$ref": "common.schema.json#/$defs/GridCoord" },
+        "status": { "$ref": "#/$defs/RobotStatus" },
+        "battery_wh": { "type": "number", "minimum": 0 },
+        "payload_kg": { "type": "number", "minimum": 0 },
+        "current_command": {
+          "description": "Command the robot is executing, if any.",
+          "$ref": "common.schema.json#/$defs/Id"
+        },
+        "health": { "$ref": "#/$defs/HealthTelemetry" },
+        "in_relay_coverage": {
+          "description": "False when the robot cannot receive new commands until it re-enters coverage.",
+          "type": "boolean"
+        }
+      },
+      "required": ["robot_id", "position", "status", "battery_wh", "payload_kg", "health", "in_relay_coverage"],
+      "additionalProperties": false
+    }
+  }
+}

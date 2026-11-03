@@ -1,0 +1,6 @@
+{
+  "command_id": "cmd-0008",
+  "robot_id": "sc-1",
+  "type": "repair",
+  "target_robot": "ex-1"
+}

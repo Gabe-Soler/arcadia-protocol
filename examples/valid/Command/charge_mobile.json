@@ -1,0 +1,6 @@
+{
+  "command_id": "cmd-0012",
+  "robot_id": "ex-1",
+  "type": "charge",
+  "source": "hl-1"
+}

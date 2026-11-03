@@ -1,0 +1,8 @@
+{
+  "type": "approval_request",
+  "message_id": "site-0017",
+  "action": "cannibalize",
+  "summary": "ex-2 disabled 3 sols; strip arm actuator for ex-1",
+  "decide_by_t": 260000.0,
+  "fallback": "abort"
+}

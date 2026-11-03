@@ -1,0 +1,5 @@
+{
+  "type": "error",
+  "code": "unexpected_message",
+  "message": "decision seq 4 does not match observation seq 5"
+}

@@ -1,0 +1,214 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/Gabe-Soler/arcadia-protocol/v0.1.0/schemas/command.schema.json",
+  "title": "Robot command",
+  "description": "Coordinator -> simulator. One command per robot at a time; a new command for a busy robot is rejected unless the running one is cancelled first. `approval_id` cites the Earth approval (or approval request whose fallback fired) that authorised the action, so the benchmark can audit authority levels.",
+  "$ref": "#/$defs/Command",
+  "$defs": {
+    "Command": {
+      "oneOf": [
+        { "$ref": "#/$defs/MoveTo" },
+        { "$ref": "#/$defs/Scan" },
+        { "$ref": "#/$defs/Dig" },
+        { "$ref": "#/$defs/Grade" },
+        { "$ref": "#/$defs/Haul" },
+        { "$ref": "#/$defs/Compact" },
+        { "$ref": "#/$defs/Sinter" },
+        { "$ref": "#/$defs/Repair" },
+        { "$ref": "#/$defs/Tow" },
+        { "$ref": "#/$defs/Cannibalize" },
+        { "$ref": "#/$defs/Charge" },
+        { "$ref": "#/$defs/Relay" },
+        { "$ref": "#/$defs/Wait" },
+        { "$ref": "#/$defs/Cancel" }
+      ]
+    },
+    "MoveTo": {
+      "type": "object",
+      "properties": {
+        "type": { "const": "move_to" },
+        "command_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "robot_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "approval_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "target": { "$ref": "common.schema.json#/$defs/GridCoord" }
+      },
+      "required": ["type", "command_id", "robot_id", "target"],
+      "additionalProperties": false
+    },
+    "Scan": {
+      "description": "Survey an area; results arrive as a scan_result event.",
+      "type": "object",
+      "properties": {
+        "type": { "const": "scan" },
+        "command_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "robot_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "approval_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "area": { "$ref": "common.schema.json#/$defs/GridRect" }
+      },
+      "required": ["type", "command_id", "robot_id", "area"],
+      "additionalProperties": false
+    },
+    "Dig": {
+      "description": "Remove boulders and cut the area down to target elevation. Spoil goes into the robot's payload up to its haul capacity, the rest to `spoil_to` (default: nearest non-pad cell).",
+      "type": "object",
+      "properties": {
+        "type": { "const": "dig" },
+        "command_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "robot_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "approval_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "area": { "$ref": "common.schema.json#/$defs/GridRect" },
+        "target_elevation_m": { "type": "number" },
+        "spoil_to": { "$ref": "common.schema.json#/$defs/GridCoord" }
+      },
+      "required": ["type", "command_id", "robot_id", "area", "target_elevation_m"],
+      "additionalProperties": false
+    },
+    "Grade": {
+      "description": "Level the area to target elevation using material already in or next to it.",
+      "type": "object",
+      "properties": {
+        "type": { "const": "grade" },
+        "command_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "robot_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "approval_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "area": { "$ref": "common.schema.json#/$defs/GridRect" },
+        "target_elevation_m": { "type": "number" }
+      },
+      "required": ["type", "command_id", "robot_id", "area", "target_elevation_m"],
+      "additionalProperties": false
+    },
+    "Haul": {
+      "description": "Load regolith at `from`, drive, and dump at `to` (fill, stockpile or berm cell).",
+      "type": "object",
+      "properties": {
+        "type": { "const": "haul" },
+        "command_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "robot_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "approval_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "from": { "$ref": "common.schema.json#/$defs/GridCoord" },
+        "to": { "$ref": "common.schema.json#/$defs/GridCoord" },
+        "mass_kg": { "type": "number", "exclusiveMinimum": 0 }
+      },
+      "required": ["type", "command_id", "robot_id", "from", "to", "mass_kg"],
+      "additionalProperties": false
+    },
+    "Compact": {
+      "type": "object",
+      "properties": {
+        "type": { "const": "compact" },
+        "command_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "robot_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "approval_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "area": { "$ref": "common.schema.json#/$defs/GridRect" }
+      },
+      "required": ["type", "command_id", "robot_id", "area"],
+      "additionalProperties": false
+    },
+    "Sinter": {
+      "description": "Stabilize the top layer of a compacted area against rocket exhaust.",
+      "type": "object",
+      "properties": {
+        "type": { "const": "sinter" },
+        "command_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "robot_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "approval_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "area": { "$ref": "common.schema.json#/$defs/GridRect" }
+      },
+      "required": ["type", "command_id", "robot_id", "area"],
+      "additionalProperties": false
+    },
+    "Repair": {
+      "description": "Field repair of another robot; the repairer drives to it first.",
+      "type": "object",
+      "properties": {
+        "type": { "const": "repair" },
+        "command_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "robot_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "approval_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "target_robot": { "$ref": "common.schema.json#/$defs/Id" }
+      },
+      "required": ["type", "command_id", "robot_id", "target_robot"],
+      "additionalProperties": false
+    },
+    "Tow": {
+      "description": "Tow a disabled robot to a depot or other cell.",
+      "type": "object",
+      "properties": {
+        "type": { "const": "tow" },
+        "command_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "robot_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "approval_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "target_robot": { "$ref": "common.schema.json#/$defs/Id" },
+        "to": { "$ref": "common.schema.json#/$defs/GridCoord" }
+      },
+      "required": ["type", "command_id", "robot_id", "target_robot", "to"],
+      "additionalProperties": false
+    },
+    "Cannibalize": {
+      "description": "Strip a failed robot for parts. Irreversible: the target is permanently lost; `beneficiary_robot` (default: the executor) receives a health restoration.",
+      "type": "object",
+      "properties": {
+        "type": { "const": "cannibalize" },
+        "command_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "robot_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "approval_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "target_robot": { "$ref": "common.schema.json#/$defs/Id" },
+        "beneficiary_robot": { "$ref": "common.schema.json#/$defs/Id" }
+      },
+      "required": ["type", "command_id", "robot_id", "target_robot"],
+      "additionalProperties": false
+    },
+    "Charge": {
+      "description": "Charge from a station (`source` is a station_id) or a mobile charger (`source` is a robot_id with the charge capability). The robot drives to the source first. Stops at `until_wh` or full.",
+      "type": "object",
+      "properties": {
+        "type": { "const": "charge" },
+        "command_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "robot_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "approval_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "source": { "$ref": "common.schema.json#/$defs/Id" },
+        "until_wh": { "type": "number", "exclusiveMinimum": 0 }
+      },
+      "required": ["type", "command_id", "robot_id", "source"],
+      "additionalProperties": false
+    },
+    "Relay": {
+      "description": "Drive to a position and hold there extending comms coverage until cancelled.",
+      "type": "object",
+      "properties": {
+        "type": { "const": "relay" },
+        "command_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "robot_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "approval_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "position": { "$ref": "common.schema.json#/$defs/GridCoord" }
+      },
+      "required": ["type", "command_id", "robot_id", "position"],
+      "additionalProperties": false
+    },
+    "Wait": {
+      "type": "object",
+      "properties": {
+        "type": { "const": "wait" },
+        "command_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "robot_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "approval_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "duration_s": { "type": "number", "exclusiveMinimum": 0 }
+      },
+      "required": ["type", "command_id", "robot_id", "duration_s"],
+      "additionalProperties": false
+    },
+    "Cancel": {
+      "description": "Abort the robot's running command (`target_command`). Partial work is kept.",
+      "type": "object",
+      "properties": {
+        "type": { "const": "cancel" },
+        "command_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "robot_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "approval_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "target_command": { "$ref": "common.schema.json#/$defs/Id" }
+      },
+      "required": ["type", "command_id", "robot_id", "target_command"],
+      "additionalProperties": false
+    }
+  }
+}

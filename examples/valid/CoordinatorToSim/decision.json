@@ -1,0 +1,44 @@
+{
+  "type": "decision",
+  "seq": 0,
+  "commands": [
+    {
+      "command_id": "cmd-0002",
+      "robot_id": "sc-1",
+      "type": "scan",
+      "area": {
+        "min": {
+          "x": 10,
+          "y": 10
+        },
+        "max": {
+          "x": 29,
+          "y": 29
+        }
+      }
+    },
+    {
+      "command_id": "cmd-0001",
+      "robot_id": "ex-1",
+      "type": "move_to",
+      "target": {
+        "x": 15,
+        "y": 15
+      }
+    }
+  ],
+  "to_earth": [
+    {
+      "type": "status_report",
+      "message_id": "site-0019",
+      "summary": "Sol 4: survey done, 30% graded",
+      "progress": [
+        {
+          "goal_id": "pad-a",
+          "fraction_complete": 0.3
+        }
+      ]
+    }
+  ],
+  "wake_at": 3600
+}

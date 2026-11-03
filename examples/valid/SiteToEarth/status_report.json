@@ -1,0 +1,11 @@
+{
+  "type": "status_report",
+  "message_id": "site-0019",
+  "summary": "Sol 4: survey done, 30% graded",
+  "progress": [
+    {
+      "goal_id": "pad-a",
+      "fraction_complete": 0.3
+    }
+  ]
+}

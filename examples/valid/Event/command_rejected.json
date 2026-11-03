@@ -1,0 +1,8 @@
+{
+  "type": "command_rejected",
+  "t": 120.0,
+  "command_id": "cmd-0002",
+  "robot_id": "ex-1",
+  "reason": "missing_capability",
+  "detail": "ex-1 cannot scan"
+}

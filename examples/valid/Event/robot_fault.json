@@ -1,0 +1,8 @@
+{
+  "type": "robot_fault",
+  "t": 40000.0,
+  "robot_id": "ex-1",
+  "cause": "wear",
+  "component": "drive",
+  "severity": "degraded"
+}

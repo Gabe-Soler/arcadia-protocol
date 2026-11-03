@@ -1,0 +1,6 @@
+{
+  "command_id": "cmd-0014",
+  "robot_id": "ex-1",
+  "type": "wait",
+  "duration_s": 600
+}

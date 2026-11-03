@@ -1,0 +1,9 @@
+{
+  "command_id": "cmd-0001",
+  "robot_id": "ex-1",
+  "type": "move_to",
+  "target": {
+    "x": 15,
+    "y": 15
+  }
+}

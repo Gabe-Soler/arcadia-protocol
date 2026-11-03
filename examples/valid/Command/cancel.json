@@ -1,0 +1,6 @@
+{
+  "command_id": "cmd-0015",
+  "robot_id": "ex-1",
+  "type": "cancel",
+  "target_command": "cmd-0003"
+}

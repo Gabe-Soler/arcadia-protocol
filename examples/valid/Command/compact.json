@@ -1,0 +1,15 @@
+{
+  "command_id": "cmd-0006",
+  "robot_id": "ex-1",
+  "type": "compact",
+  "area": {
+    "min": {
+      "x": 10,
+      "y": 10
+    },
+    "max": {
+      "x": 14,
+      "y": 14
+    }
+  }
+}

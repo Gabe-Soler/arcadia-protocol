@@ -1,0 +1,10 @@
+{
+  "type": "reprioritize",
+  "message_id": "earth-0044",
+  "priorities": [
+    {
+      "goal_id": "pad-a",
+      "priority": 20
+    }
+  ]
+}

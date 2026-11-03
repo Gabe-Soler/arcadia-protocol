@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/Gabe-Soler/arcadia-protocol/v0.1.0/schemas/event_log.schema.json",
+  "title": "Run event log",
+  "description": "One JSON record per line (JSONL), written by the simulator for every run. Contains ground truth, so it is the input for scoring and for the replay viewer. Records are in non-decreasing `t` order. The first record is run_start and the last is run_end.",
+  "$ref": "#/$defs/LogRecord",
+  "$defs": {
+    "LogRecord": {
+      "oneOf": [
+        { "$ref": "#/$defs/RunStart" },
+        { "$ref": "#/$defs/Truth" },
+        { "$ref": "#/$defs/Observed" },
+        { "$ref": "#/$defs/Commanded" },
+        { "$ref": "#/$defs/EarthUplink" },
+        { "$ref": "#/$defs/EarthDownlink" },
+        { "$ref": "#/$defs/RunEnd" }
+      ]
+    },
+    "RunStart": {
+      "type": "object",
+      "properties": {
+        "kind": { "const": "run_start" },
+        "t": { "$ref": "common.schema.json#/$defs/SimTime" },
+        "protocol_version": { "$ref": "common.schema.json#/$defs/Semver" },
+        "simulator": { "$ref": "common.schema.json#/$defs/SoftwareInfo" },
+        "coordinator": { "$ref": "common.schema.json#/$defs/SoftwareInfo" },
+        "run_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "seed": { "type": "integer", "minimum": 0 },
+        "scenario": {
+          "description": "The scenario as given to the coordinator.",
+          "$ref": "messages.schema.json#/$defs/Scenario"
+        },
+        "true_site": {
+          "description": "Full ground-truth site map.",
+          "$ref": "site_map.schema.json#/$defs/SiteMap"
+        }
+      },
+      "required": ["kind", "t", "protocol_version", "simulator", "run_id", "seed", "scenario", "true_site"],
+      "additionalProperties": false
+    },
+    "Truth": {
+      "description": "Ground-truth snapshot: robot states without telemetry noise, and every cell changed since the previous truth record.",
+      "type": "object",
+      "properties": {
+        "kind": { "const": "truth" },
+        "t": { "$ref": "common.schema.json#/$defs/SimTime" },
+        "robots": {
+          "type": "array",
+          "items": { "$ref": "robot_state.schema.json#/$defs/RobotState" }
+        },
+        "changed_cells": {
+          "type": "array",
+          "items": { "$ref": "site_map.schema.json#/$defs/CellObservation" }
+        }
+      },
+      "required": ["kind", "t", "robots", "changed_cells"],
+      "additionalProperties": false
+    },
+    "Observed": {
+      "description": "An event exactly as delivered to the coordinator.",
+      "type": "object",
+      "properties": {
+        "kind": { "const": "observed" },
+        "t": { "$ref": "common.schema.json#/$defs/SimTime" },
+        "event": { "$ref": "event.schema.json#/$defs/Event" }
+      },
+      "required": ["kind", "t", "event"],
+      "additionalProperties": false
+    },
+    "Commanded": {
+      "type": "object",
+      "properties": {
+        "kind": { "const": "commanded" },
+        "t": { "$ref": "common.schema.json#/$defs/SimTime" },
+        "command": { "$ref": "command.schema.json#/$defs/Command" }
+      },
+      "required": ["kind", "t", "command"],
+      "additionalProperties": false
+    },
+    "EarthUplink": {
+      "description": "Earth -> site message. `t` is when Earth sent it; `deliver_t` is when it reached the site (absent if never delivered).",
+      "type": "object",
+      "properties": {
+        "kind": { "const": "earth_uplink" },
+        "t": { "$ref": "common.schema.json#/$defs/SimTime" },
+        "deliver_t": { "$ref": "common.schema.json#/$defs/SimTime" },
+        "message": { "$ref": "earth.schema.json#/$defs/EarthToSite" }
+      },
+      "required": ["kind", "t", "message"],
+      "additionalProperties": false
+    },
+    "EarthDownlink": {
+      "description": "Site -> Earth message. `t` is when the coordinator queued it; `deliver_t` is when Earth received it (absent if never delivered).",
+      "type": "object",
+      "properties": {
+        "kind": { "const": "earth_downlink" },
+        "t": { "$ref": "common.schema.json#/$defs/SimTime" },
+        "deliver_t": { "$ref": "common.schema.json#/$defs/SimTime" },
+        "message": { "$ref": "earth.schema.json#/$defs/SiteToEarth" }
+      },
+      "required": ["kind", "t", "message"],
+      "additionalProperties": false
+    },
+    "RunEnd": {
+      "type": "object",
+      "properties": {
+        "kind": { "const": "run_end" },
+        "t": { "$ref": "common.schema.json#/$defs/SimTime" },
+        "reason": { "enum": ["goals_complete", "time_limit", "fleet_lost", "coordinator_error", "simulator_error"] }
+      },
+      "required": ["kind", "t", "reason"],
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "site_id": "arcadia-pad-01",
+  "name": "Arcadia Planitia landing pad site",
+  "width": 40,
+  "height": 40,
+  "cell_size_m": 1.0,
+  "cells": [
+    {
+      "at": {
+        "x": 0,
+        "y": 0
+      },
+      "cell": {
+        "elevation_m": -4102.31,
+        "regolith": {
+          "depth_m": 0.8,
+          "bulk_density_kg_m3": 1520,
+          "cohesion_kpa": 1.2
+        },
+        "boulders": [
+          {
+            "diameter_m": 0.6,
+            "mass_kg": 310
+          }
+        ],
+        "surface": "natural",
+        "ice_depth_m": 1.9
+      }
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "type": "notify",
+  "message_id": "site-0016",
+  "action": "reassign_task",
+  "summary": "ex-1 drive degraded; grading of section B moved to ex-2",
+  "commands": [
+    "cmd-0021"
+  ]
+}

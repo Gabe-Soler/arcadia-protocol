@@ -1,0 +1,18 @@
+{
+  "robot_id": "ex-1",
+  "position": {
+    "x": 12,
+    "y": 9
+  },
+  "status": "working",
+  "battery_wh": 3120.5,
+  "payload_kg": 180.0,
+  "current_command": "cmd-0007",
+  "health": {
+    "wheel_slip": 1.4,
+    "motor_current_ratio": 1.08,
+    "dust_coverage": 0.12,
+    "temperature_c": -42.5
+  },
+  "in_relay_coverage": true
+}

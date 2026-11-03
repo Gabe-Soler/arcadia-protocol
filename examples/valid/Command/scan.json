@@ -1,0 +1,15 @@
+{
+  "command_id": "cmd-0002",
+  "robot_id": "sc-1",
+  "type": "scan",
+  "area": {
+    "min": {
+      "x": 10,
+      "y": 10
+    },
+    "max": {
+      "x": 29,
+      "y": 29
+    }
+  }
+}

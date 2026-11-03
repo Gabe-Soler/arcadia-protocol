@@ -1,0 +1,7 @@
+{
+  "type": "command_accepted",
+  "t": 120.0,
+  "command_id": "cmd-0003",
+  "robot_id": "ex-1",
+  "estimated_duration_s": 5400
+}

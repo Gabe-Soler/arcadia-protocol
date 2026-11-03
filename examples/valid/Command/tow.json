@@ -1,0 +1,10 @@
+{
+  "command_id": "cmd-0009",
+  "robot_id": "hl-1",
+  "type": "tow",
+  "target_robot": "ex-1",
+  "to": {
+    "x": 1,
+    "y": 5
+  }
+}

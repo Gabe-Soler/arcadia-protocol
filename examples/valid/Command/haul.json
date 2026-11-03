@@ -1,0 +1,14 @@
+{
+  "command_id": "cmd-0005",
+  "robot_id": "hl-1",
+  "type": "haul",
+  "from": {
+    "x": 8,
+    "y": 9
+  },
+  "to": {
+    "x": 8,
+    "y": 10
+  },
+  "mass_kg": 350
+}

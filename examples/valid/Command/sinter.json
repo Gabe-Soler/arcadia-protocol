@@ -1,0 +1,15 @@
+{
+  "command_id": "cmd-0007",
+  "robot_id": "ex-1",
+  "type": "sinter",
+  "area": {
+    "min": {
+      "x": 10,
+      "y": 10
+    },
+    "max": {
+      "x": 11,
+      "y": 11
+    }
+  }
+}

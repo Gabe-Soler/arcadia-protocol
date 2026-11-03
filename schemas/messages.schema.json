@@ -1,0 +1,143 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/Gabe-Soler/arcadia-protocol/v0.1.0/schemas/messages.schema.json",
+  "title": "Simulator <-> coordinator loop",
+  "description": "The coordinator runs as a subprocess of the simulator and speaks newline-delimited JSON (one message per line) on stdin/stdout; stderr is free for logs. Sequence: sim sends hello -> coordinator replies welcome -> repeat { sim sends observation(seq=n) -> coordinator replies decision(seq=n) } -> sim sends end. Sim time does not advance while the simulator waits for a decision. Either side may send error and exit. Protocol versions are compatible when MAJOR.MINOR match (0.x releases may break on any minor bump).",
+  "oneOf": [
+    { "$ref": "#/$defs/SimToCoordinator" },
+    { "$ref": "#/$defs/CoordinatorToSim" }
+  ],
+  "$defs": {
+    "SimToCoordinator": {
+      "oneOf": [
+        { "$ref": "#/$defs/Hello" },
+        { "$ref": "#/$defs/Observation" },
+        { "$ref": "#/$defs/End" },
+        { "$ref": "#/$defs/Error" }
+      ]
+    },
+    "CoordinatorToSim": {
+      "oneOf": [
+        { "$ref": "#/$defs/Welcome" },
+        { "$ref": "#/$defs/Decision" },
+        { "$ref": "#/$defs/Error" }
+      ]
+    },
+    "Hello": {
+      "description": "First message. The coordinator must check protocol_version before reading the scenario. Goals are not part of the scenario: they arrive as earth_message events, the first at t=0.",
+      "type": "object",
+      "properties": {
+        "type": { "const": "hello" },
+        "protocol_version": { "$ref": "common.schema.json#/$defs/Semver" },
+        "simulator": { "$ref": "common.schema.json#/$defs/SoftwareInfo" },
+        "run_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "seed": { "type": "integer", "minimum": 0 },
+        "scenario": { "$ref": "#/$defs/Scenario" }
+      },
+      "required": ["type", "protocol_version", "simulator", "run_id", "seed", "scenario"],
+      "additionalProperties": false
+    },
+    "Scenario": {
+      "type": "object",
+      "properties": {
+        "scenario_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "start_t": { "$ref": "common.schema.json#/$defs/SimTime" },
+        "time_limit_t": { "$ref": "common.schema.json#/$defs/SimTime" },
+        "sol_length_s": { "type": "number", "exclusiveMinimum": 0 },
+        "site": {
+          "description": "Prior knowledge of the site (orbital data), not ground truth.",
+          "$ref": "site_map.schema.json#/$defs/SiteMap"
+        },
+        "robots": {
+          "type": "array",
+          "items": { "$ref": "capability.schema.json#/$defs/RobotSpec" },
+          "minItems": 1
+        },
+        "stations": {
+          "type": "array",
+          "items": { "$ref": "capability.schema.json#/$defs/ChargeStation" }
+        },
+        "depots": {
+          "type": "array",
+          "items": { "$ref": "capability.schema.json#/$defs/Depot" }
+        },
+        "policy": { "$ref": "policy.schema.json#/$defs/Policy" }
+      },
+      "required": ["scenario_id", "start_t", "time_limit_t", "sol_length_s", "site", "robots", "stations", "depots", "policy"],
+      "additionalProperties": false
+    },
+    "Welcome": {
+      "type": "object",
+      "properties": {
+        "type": { "const": "welcome" },
+        "protocol_version": { "$ref": "common.schema.json#/$defs/Semver" },
+        "coordinator": { "$ref": "common.schema.json#/$defs/SoftwareInfo" }
+      },
+      "required": ["type", "protocol_version", "coordinator"],
+      "additionalProperties": false
+    },
+    "Observation": {
+      "description": "Sent at every decision point: a command finished or failed, a fault, a weather/power/comms change, an Earth message arrived, or the coordinator's requested wake_at time was reached.",
+      "type": "object",
+      "properties": {
+        "type": { "const": "observation" },
+        "seq": { "description": "Starts at 0, increases by 1 per observation.", "type": "integer", "minimum": 0 },
+        "t": { "$ref": "common.schema.json#/$defs/SimTime" },
+        "events": {
+          "description": "Events since the previous observation, in time order.",
+          "type": "array",
+          "items": { "$ref": "event.schema.json#/$defs/Event" }
+        },
+        "robots": {
+          "description": "Current state of every robot as seen through (noisy) telemetry.",
+          "type": "array",
+          "items": { "$ref": "robot_state.schema.json#/$defs/RobotState" }
+        }
+      },
+      "required": ["type", "seq", "t", "events", "robots"],
+      "additionalProperties": false
+    },
+    "Decision": {
+      "type": "object",
+      "properties": {
+        "type": { "const": "decision" },
+        "seq": { "description": "Must echo the seq of the observation being answered.", "type": "integer", "minimum": 0 },
+        "commands": {
+          "type": "array",
+          "items": { "$ref": "command.schema.json#/$defs/Command" }
+        },
+        "to_earth": {
+          "description": "Messages queued for transmission to Earth.",
+          "type": "array",
+          "items": { "$ref": "earth.schema.json#/$defs/SiteToEarth" }
+        },
+        "wake_at": {
+          "description": "Request an observation at this time even if nothing happens.",
+          "$ref": "common.schema.json#/$defs/SimTime"
+        }
+      },
+      "required": ["type", "seq", "commands", "to_earth"],
+      "additionalProperties": false
+    },
+    "End": {
+      "type": "object",
+      "properties": {
+        "type": { "const": "end" },
+        "t": { "$ref": "common.schema.json#/$defs/SimTime" },
+        "reason": { "enum": ["goals_complete", "time_limit", "fleet_lost", "coordinator_error", "simulator_error"] }
+      },
+      "required": ["type", "t", "reason"],
+      "additionalProperties": false
+    },
+    "Error": {
+      "type": "object",
+      "properties": {
+        "type": { "const": "error" },
+        "code": { "enum": ["version_mismatch", "invalid_message", "unexpected_message", "internal"] },
+        "message": { "type": "string" }
+      },
+      "required": ["type", "code", "message"],
+      "additionalProperties": false
+    }
+  }
+}

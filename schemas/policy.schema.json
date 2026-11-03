@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/Gabe-Soler/arcadia-protocol/v0.1.0/schemas/policy.schema.json",
+  "title": "Authority policy",
+  "description": "Maps every coordinator action to an authority level. 1 autonomous: do it. 2 notify: do it, then report. 3 approve-if-reachable: ask first; if no answer by the deadline, apply the fallback. 4 hold for Earth: never done without an explicit approve. Earth can replace the policy at any time with a policy_update message.",
+  "$ref": "#/$defs/Policy",
+  "$defs": {
+    "ActionName": {
+      "description": "snake_case action name. Robot-level actions match command types (move_to, dig, cannibalize, ...); coordinator-level actions include replan, reassign_task, abandon_section, commit_energy_reserve.",
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]{0,63}$"
+    },
+    "AuthorityLevel": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 4
+    },
+    "Policy": {
+      "type": "object",
+      "properties": {
+        "policy_version": { "description": "Incremented by Earth on every update.", "type": "integer", "minimum": 1 },
+        "default_level": {
+          "description": "Level for any action not listed in `levels`.",
+          "$ref": "#/$defs/AuthorityLevel"
+        },
+        "levels": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/ActionName" },
+          "additionalProperties": { "$ref": "#/$defs/AuthorityLevel" }
+        },
+        "level3": {
+          "description": "Parameters for the approve-if-reachable fallback rule.",
+          "type": "object",
+          "properties": {
+            "max_wait_s": { "description": "Longest the coordinator may wait for an answer before applying the fallback.", "$ref": "common.schema.json#/$defs/Duration" },
+            "default_fallback": { "enum": ["proceed", "abort"] }
+          },
+          "required": ["max_wait_s", "default_fallback"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["policy_version", "default_level", "levels", "level3"],
+      "additionalProperties": false
+    }
+  }
+}

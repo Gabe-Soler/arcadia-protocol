@@ -1,0 +1,21 @@
+[package]
+name = "arcadia-protocol"
+version = "0.1.0"
+edition = "2024"
+description = "Interface spec between ArcadiaOS-style coordinators and the ArcadiaBench simulator."
+license = "MIT"
+repository = "https://github.com/Gabe-Soler/arcadia-protocol"
+include = ["src/**", "schemas/**", "Cargo.toml", "README.md", "LICENSE"]
+
+[features]
+# Strict JSON Schema validation against the embedded schemas.
+validate = ["dep:jsonschema"]
+
+[dependencies]
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.154"
+jsonschema = { version = "0.60.2", default-features = false, optional = true }
+
+[dev-dependencies]
+# Turn on `validate` for this crate's own tests, so a plain `cargo test` runs the conformance suite.
+arcadia-protocol = { path = ".", features = ["validate"] }

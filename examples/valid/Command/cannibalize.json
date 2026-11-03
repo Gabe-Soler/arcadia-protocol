@@ -1,0 +1,8 @@
+{
+  "command_id": "cmd-0010",
+  "robot_id": "sc-1",
+  "type": "cannibalize",
+  "target_robot": "ex-2",
+  "beneficiary_robot": "ex-1",
+  "approval_id": "earth-0042"
+}

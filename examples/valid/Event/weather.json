@@ -1,0 +1,7 @@
+{
+  "type": "weather",
+  "t": 200000.0,
+  "condition": "dust_storm",
+  "optical_depth": 3.2,
+  "temperature_c": -55.0
+}

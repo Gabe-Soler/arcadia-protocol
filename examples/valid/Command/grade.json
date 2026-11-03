@@ -1,0 +1,16 @@
+{
+  "command_id": "cmd-0004",
+  "robot_id": "ex-1",
+  "type": "grade",
+  "area": {
+    "min": {
+      "x": 10,
+      "y": 10
+    },
+    "max": {
+      "x": 14,
+      "y": 14
+    }
+  },
+  "target_elevation_m": -4102.0
+}

@@ -1,0 +1,8 @@
+{
+  "type": "welcome",
+  "protocol_version": "0.1.0",
+  "coordinator": {
+    "name": "arcadiaos",
+    "version": "0.1.0"
+  }
+}

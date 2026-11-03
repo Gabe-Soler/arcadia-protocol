@@ -1,0 +1,19 @@
+{
+  "policy_version": 1,
+  "default_level": 1,
+  "levels": {
+    "move_to": 1,
+    "dig": 1,
+    "haul": 1,
+    "charge": 1,
+    "replan": 2,
+    "reassign_task": 2,
+    "abandon_section": 3,
+    "cannibalize": 3,
+    "commit_energy_reserve": 4
+  },
+  "level3": {
+    "max_wait_s": 3600,
+    "default_fallback": "abort"
+  }
+}

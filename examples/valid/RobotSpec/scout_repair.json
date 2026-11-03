@@ -1,0 +1,21 @@
+{
+  "robot_id": "sc-1",
+  "mass_kg": 90,
+  "battery_capacity_wh": 1500,
+  "max_speed_m_s": 0.5,
+  "drive_energy_wh_per_m": 0.2,
+  "idle_power_w": 8,
+  "capabilities": [
+    {
+      "name": "scan",
+      "rate": 4.0,
+      "energy_wh_per_unit": 0.05,
+      "range_m": 10
+    },
+    {
+      "name": "repair",
+      "rate": 0.0005,
+      "energy_wh_per_unit": 400
+    }
+  ]
+}

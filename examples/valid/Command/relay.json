@@ -1,0 +1,9 @@
+{
+  "command_id": "cmd-0013",
+  "robot_id": "hl-1",
+  "type": "relay",
+  "position": {
+    "x": 35,
+    "y": 20
+  }
+}

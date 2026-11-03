@@ -1,0 +1,48 @@
+{
+  "type": "earth_message",
+  "t": 0,
+  "sent_t": 0,
+  "message": {
+    "type": "goal",
+    "message_id": "earth-0001",
+    "goal_id": "pad-a",
+    "priority": 10,
+    "deadline_t": 3994875,
+    "objective": {
+      "kind": "landing_pad",
+      "pad": {
+        "area": {
+          "min": {
+            "x": 10,
+            "y": 10
+          },
+          "max": {
+            "x": 29,
+            "y": 29
+          }
+        },
+        "target_elevation_m": -4102.0,
+        "surface_tolerance_m": 0.05,
+        "max_slope_deg": 2.0,
+        "stabilize": true,
+        "berm": {
+          "cells": [
+            {
+              "x": 8,
+              "y": 8
+            },
+            {
+              "x": 8,
+              "y": 9
+            },
+            {
+              "x": 8,
+              "y": 10
+            }
+          ],
+          "height_m": 1.5
+        }
+      }
+    }
+  }
+}

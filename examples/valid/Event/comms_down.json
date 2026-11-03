@@ -1,0 +1,8 @@
+{
+  "type": "comms",
+  "t": 1000000.0,
+  "link": "down",
+  "cause": "conjunction",
+  "one_way_delay_s": 1320,
+  "expected_restore_t": 2500000.0
+}

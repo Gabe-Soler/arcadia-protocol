@@ -1,0 +1,17 @@
+{
+  "robot_id": "hl-1",
+  "position": {
+    "x": 3,
+    "y": 3
+  },
+  "status": "charging",
+  "battery_wh": 950.0,
+  "payload_kg": 0,
+  "health": {
+    "wheel_slip": 0.02,
+    "motor_current_ratio": 1.08,
+    "dust_coverage": 0.12,
+    "temperature_c": -42.5
+  },
+  "in_relay_coverage": true
+}

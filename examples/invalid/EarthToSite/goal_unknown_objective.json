@@ -1,0 +1,10 @@
+{
+  "type": "goal",
+  "message_id": "earth-0001",
+  "goal_id": "pad-a",
+  "priority": 10,
+  "deadline_t": 3994875,
+  "objective": {
+    "kind": "habitat"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "type": "command_completed",
+  "t": 5530.2,
+  "command_id": "cmd-0003",
+  "robot_id": "ex-1",
+  "energy_used_wh": 812.4
+}

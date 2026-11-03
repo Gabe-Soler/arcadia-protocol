@@ -1,0 +1,8 @@
+{
+  "command_id": "cmd-0001",
+  "type": "move_to",
+  "target": {
+    "x": 15,
+    "y": 15
+  }
+}

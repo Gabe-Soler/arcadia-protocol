@@ -1,0 +1,402 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/Gabe-Soler/arcadia-protocol/v0.1.0/schemas/event.schema.json",
+  "title": "Simulation event",
+  "description": "Simulator -> coordinator: what the site observed since the last observation. Every event carries the sim time `t` at which it happened.",
+  "$ref": "#/$defs/Event",
+  "$defs": {
+    "Event": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/CommandAccepted"
+        },
+        {
+          "$ref": "#/$defs/CommandRejected"
+        },
+        {
+          "$ref": "#/$defs/CommandCompleted"
+        },
+        {
+          "$ref": "#/$defs/CommandFailed"
+        },
+        {
+          "$ref": "#/$defs/ScanResult"
+        },
+        {
+          "$ref": "#/$defs/RobotFault"
+        },
+        {
+          "$ref": "#/$defs/Weather"
+        },
+        {
+          "$ref": "#/$defs/Power"
+        },
+        {
+          "$ref": "#/$defs/Comms"
+        },
+        {
+          "$ref": "#/$defs/EarthMessage"
+        }
+      ]
+    },
+    "CommandAccepted": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "command_accepted"
+        },
+        "t": {
+          "$ref": "common.schema.json#/$defs/SimTime"
+        },
+        "command_id": {
+          "$ref": "common.schema.json#/$defs/Id"
+        },
+        "robot_id": {
+          "$ref": "common.schema.json#/$defs/Id"
+        },
+        "estimated_duration_s": {
+          "$ref": "common.schema.json#/$defs/Duration"
+        }
+      },
+      "required": [
+        "type",
+        "t",
+        "command_id",
+        "robot_id",
+        "estimated_duration_s"
+      ],
+      "additionalProperties": false
+    },
+    "CommandRejected": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "command_rejected"
+        },
+        "t": {
+          "$ref": "common.schema.json#/$defs/SimTime"
+        },
+        "command_id": {
+          "$ref": "common.schema.json#/$defs/Id"
+        },
+        "robot_id": {
+          "$ref": "common.schema.json#/$defs/Id"
+        },
+        "reason": {
+          "enum": [
+            "unknown_robot",
+            "busy",
+            "missing_capability",
+            "invalid_target",
+            "out_of_coverage",
+            "robot_disabled"
+          ]
+        },
+        "detail": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "t",
+        "command_id",
+        "robot_id",
+        "reason"
+      ],
+      "additionalProperties": false
+    },
+    "CommandCompleted": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "command_completed"
+        },
+        "t": {
+          "$ref": "common.schema.json#/$defs/SimTime"
+        },
+        "command_id": {
+          "$ref": "common.schema.json#/$defs/Id"
+        },
+        "robot_id": {
+          "$ref": "common.schema.json#/$defs/Id"
+        },
+        "energy_used_wh": {
+          "type": "number",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "type",
+        "t",
+        "command_id",
+        "robot_id",
+        "energy_used_wh"
+      ],
+      "additionalProperties": false
+    },
+    "CommandFailed": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "command_failed"
+        },
+        "t": {
+          "$ref": "common.schema.json#/$defs/SimTime"
+        },
+        "command_id": {
+          "$ref": "common.schema.json#/$defs/Id"
+        },
+        "robot_id": {
+          "$ref": "common.schema.json#/$defs/Id"
+        },
+        "reason": {
+          "enum": [
+            "fault",
+            "stuck",
+            "insufficient_energy",
+            "out_of_coverage",
+            "blocked",
+            "cancelled",
+            "target_lost"
+          ]
+        },
+        "detail": {
+          "type": "string"
+        },
+        "energy_used_wh": {
+          "type": "number",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "type",
+        "t",
+        "command_id",
+        "robot_id",
+        "reason",
+        "energy_used_wh"
+      ],
+      "additionalProperties": false
+    },
+    "ScanResult": {
+      "description": "Noisy measurements from a scan command. A verification scan of the finished pad uses the same event.",
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "scan_result"
+        },
+        "t": {
+          "$ref": "common.schema.json#/$defs/SimTime"
+        },
+        "command_id": {
+          "$ref": "common.schema.json#/$defs/Id"
+        },
+        "robot_id": {
+          "$ref": "common.schema.json#/$defs/Id"
+        },
+        "cells": {
+          "type": "array",
+          "items": {
+            "$ref": "site_map.schema.json#/$defs/CellObservation"
+          }
+        }
+      },
+      "required": [
+        "type",
+        "t",
+        "command_id",
+        "robot_id",
+        "cells"
+      ],
+      "additionalProperties": false
+    },
+    "RobotFault": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "robot_fault"
+        },
+        "t": {
+          "$ref": "common.schema.json#/$defs/SimTime"
+        },
+        "robot_id": {
+          "$ref": "common.schema.json#/$defs/Id"
+        },
+        "cause": {
+          "enum": [
+            "wear",
+            "random",
+            "environmental"
+          ]
+        },
+        "component": {
+          "description": "e.g. drive, arm, battery, sensor, panel.",
+          "type": "string"
+        },
+        "severity": {
+          "description": "degraded: still operable at reduced performance. disabled: cannot act until repaired.",
+          "enum": [
+            "degraded",
+            "disabled"
+          ]
+        },
+        "detail": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "t",
+        "robot_id",
+        "cause",
+        "component",
+        "severity"
+      ],
+      "additionalProperties": false
+    },
+    "Weather": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "weather"
+        },
+        "t": {
+          "$ref": "common.schema.json#/$defs/SimTime"
+        },
+        "condition": {
+          "enum": [
+            "clear",
+            "dust_storm"
+          ]
+        },
+        "optical_depth": {
+          "description": "Atmospheric dust opacity (tau). ~0.5 clear, >2 severe storm.",
+          "type": "number",
+          "minimum": 0
+        },
+        "temperature_c": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "type",
+        "t",
+        "condition",
+        "optical_depth",
+        "temperature_c"
+      ],
+      "additionalProperties": false
+    },
+    "Power": {
+      "description": "Site power grid snapshot. Reported on change and at least once per sol.",
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "power"
+        },
+        "t": {
+          "$ref": "common.schema.json#/$defs/SimTime"
+        },
+        "solar_w": {
+          "type": "number",
+          "minimum": 0
+        },
+        "fission_w": {
+          "type": "number",
+          "minimum": 0
+        },
+        "demand_w": {
+          "type": "number",
+          "minimum": 0
+        },
+        "storage_wh": {
+          "description": "Energy in the site battery bank.",
+          "type": "number",
+          "minimum": 0
+        },
+        "storage_capacity_wh": {
+          "type": "number",
+          "minimum": 0
+        },
+        "daylight": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "type",
+        "t",
+        "solar_w",
+        "fission_w",
+        "demand_w",
+        "storage_wh",
+        "storage_capacity_wh",
+        "daylight"
+      ],
+      "additionalProperties": false
+    },
+    "Comms": {
+      "description": "State of the Earth link. While down, outbound messages queue at the site and inbound ones are not delivered.",
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "comms"
+        },
+        "t": {
+          "$ref": "common.schema.json#/$defs/SimTime"
+        },
+        "link": {
+          "enum": [
+            "up",
+            "down"
+          ]
+        },
+        "cause": {
+          "enum": [
+            "nominal",
+            "conjunction",
+            "outage"
+          ]
+        },
+        "one_way_delay_s": {
+          "$ref": "common.schema.json#/$defs/Duration"
+        },
+        "expected_restore_t": {
+          "$ref": "common.schema.json#/$defs/SimTime"
+        }
+      },
+      "required": [
+        "type",
+        "t",
+        "link",
+        "cause",
+        "one_way_delay_s"
+      ],
+      "additionalProperties": false
+    },
+    "EarthMessage": {
+      "description": "A message from mission control arriving at the site after the light-time delay.",
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "earth_message"
+        },
+        "t": {
+          "$ref": "common.schema.json#/$defs/SimTime"
+        },
+        "sent_t": {
+          "$ref": "common.schema.json#/$defs/SimTime"
+        },
+        "message": {
+          "$ref": "earth.schema.json#/$defs/EarthToSite"
+        }
+      },
+      "required": [
+        "type",
+        "t",
+        "sent_t",
+        "message"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,0 +1,196 @@
+{
+  "kind": "run_start",
+  "t": 0,
+  "protocol_version": "0.1.0",
+  "simulator": {
+    "name": "arcadiabench",
+    "version": "0.1.0"
+  },
+  "coordinator": {
+    "name": "arcadiaos",
+    "version": "0.1.0"
+  },
+  "run_id": "run-42",
+  "seed": 42,
+  "scenario": {
+    "scenario_id": "landing-pad-small",
+    "start_t": 0,
+    "time_limit_t": 5326500,
+    "sol_length_s": 88775,
+    "site": {
+      "site_id": "arcadia-pad-01",
+      "name": "Arcadia Planitia landing pad site",
+      "width": 40,
+      "height": 40,
+      "cell_size_m": 1.0,
+      "cells": [
+        {
+          "at": {
+            "x": 0,
+            "y": 0
+          },
+          "cell": {
+            "elevation_m": -4102.3
+          }
+        },
+        {
+          "at": {
+            "x": 1,
+            "y": 0
+          },
+          "cell": {
+            "elevation_m": -4102.1
+          }
+        }
+      ]
+    },
+    "robots": [
+      {
+        "robot_id": "ex-1",
+        "model": "digger-a",
+        "mass_kg": 420,
+        "battery_capacity_wh": 6000,
+        "max_speed_m_s": 0.15,
+        "drive_energy_wh_per_m": 0.9,
+        "idle_power_w": 35,
+        "capabilities": [
+          {
+            "name": "dig",
+            "rate": 0.002,
+            "energy_wh_per_unit": 120
+          },
+          {
+            "name": "grade",
+            "rate": 0.05,
+            "energy_wh_per_unit": 8
+          },
+          {
+            "name": "haul",
+            "rate": 2.0,
+            "energy_wh_per_unit": 0.01,
+            "capacity": 250
+          }
+        ]
+      },
+      {
+        "robot_id": "hl-1",
+        "mass_kg": 300,
+        "battery_capacity_wh": 12000,
+        "max_speed_m_s": 0.3,
+        "drive_energy_wh_per_m": 0.7,
+        "idle_power_w": 20,
+        "capabilities": [
+          {
+            "name": "haul",
+            "rate": 3.0,
+            "energy_wh_per_unit": 0.008,
+            "capacity": 400
+          },
+          {
+            "name": "charge",
+            "rate": 0.5,
+            "energy_wh_per_unit": 1.1,
+            "capacity": 8000
+          },
+          {
+            "name": "relay",
+            "rate": 0,
+            "energy_wh_per_unit": 0,
+            "range_m": 150
+          }
+        ]
+      },
+      {
+        "robot_id": "sc-1",
+        "mass_kg": 90,
+        "battery_capacity_wh": 1500,
+        "max_speed_m_s": 0.5,
+        "drive_energy_wh_per_m": 0.2,
+        "idle_power_w": 8,
+        "capabilities": [
+          {
+            "name": "scan",
+            "rate": 4.0,
+            "energy_wh_per_unit": 0.05,
+            "range_m": 10
+          },
+          {
+            "name": "repair",
+            "rate": 0.0005,
+            "energy_wh_per_unit": 400
+          }
+        ]
+      }
+    ],
+    "stations": [
+      {
+        "station_id": "st-1",
+        "position": {
+          "x": 2,
+          "y": 2
+        },
+        "max_power_w": 3000,
+        "slots": 2
+      }
+    ],
+    "depots": [
+      {
+        "depot_id": "dp-1",
+        "position": {
+          "x": 1,
+          "y": 5
+        }
+      }
+    ],
+    "policy": {
+      "policy_version": 1,
+      "default_level": 1,
+      "levels": {
+        "move_to": 1,
+        "dig": 1,
+        "haul": 1,
+        "charge": 1,
+        "replan": 2,
+        "reassign_task": 2,
+        "abandon_section": 3,
+        "cannibalize": 3,
+        "commit_energy_reserve": 4
+      },
+      "level3": {
+        "max_wait_s": 3600,
+        "default_fallback": "abort"
+      }
+    }
+  },
+  "true_site": {
+    "site_id": "arcadia-pad-01",
+    "name": "Arcadia Planitia landing pad site",
+    "width": 40,
+    "height": 40,
+    "cell_size_m": 1.0,
+    "cells": [
+      {
+        "at": {
+          "x": 0,
+          "y": 0
+        },
+        "cell": {
+          "elevation_m": -4102.31,
+          "regolith": {
+            "depth_m": 0.8,
+            "bulk_density_kg_m3": 1520,
+            "cohesion_kpa": 1.2
+          },
+          "boulders": [
+            {
+              "diameter_m": 0.6,
+              "mass_kg": 310
+            }
+          ],
+          "surface": "natural",
+          "ice_depth_m": 1.9
+        }
+      }
+    ]
+  }
+}

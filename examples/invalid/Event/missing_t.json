@@ -1,0 +1,9 @@
+{
+  "type": "power",
+  "solar_w": 18000,
+  "fission_w": 10000,
+  "demand_w": 21500,
+  "storage_wh": 64000,
+  "storage_capacity_wh": 100000,
+  "daylight": true
+}

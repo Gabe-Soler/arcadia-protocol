@@ -1,0 +1,16 @@
+{
+  "robot_id": "ex-1",
+  "model": "digger-a",
+  "mass_kg": 420,
+  "battery_capacity_wh": 6000,
+  "max_speed_m_s": 0.15,
+  "drive_energy_wh_per_m": 0.9,
+  "idle_power_w": 35,
+  "capabilities": [
+    {
+      "name": "fly",
+      "rate": 1,
+      "energy_wh_per_unit": 1
+    }
+  ]
+}

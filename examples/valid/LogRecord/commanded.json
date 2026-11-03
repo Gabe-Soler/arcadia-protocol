@@ -1,0 +1,24 @@
+{
+  "kind": "commanded",
+  "t": 0,
+  "command": {
+    "command_id": "cmd-0003",
+    "robot_id": "ex-1",
+    "type": "dig",
+    "area": {
+      "min": {
+        "x": 12,
+        "y": 12
+      },
+      "max": {
+        "x": 13,
+        "y": 13
+      }
+    },
+    "target_elevation_m": -4102.0,
+    "spoil_to": {
+      "x": 8,
+      "y": 9
+    }
+  }
+}

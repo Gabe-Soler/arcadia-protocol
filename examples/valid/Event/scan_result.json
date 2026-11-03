@@ -1,0 +1,21 @@
+{
+  "type": "scan_result",
+  "t": 900.0,
+  "command_id": "cmd-0002",
+  "robot_id": "sc-1",
+  "cells": [
+    {
+      "at": {
+        "x": 10,
+        "y": 10
+      },
+      "cell": {
+        "elevation_m": -4101.94,
+        "regolith": {
+          "depth_m": 0.75
+        },
+        "boulders": []
+      }
+    }
+  ]
+}

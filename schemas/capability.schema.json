@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/Gabe-Soler/arcadia-protocol/v0.1.0/schemas/capability.schema.json",
+  "title": "Capabilities and robot specs",
+  "description": "Robots are defined by what they can do, not by type. Each capability has a fixed work unit: scan m2, dig m3, grade m2, haul kg, compact m2, sinter m2, repair health-fraction, charge Wh, relay m (coverage radius, no rate).",
+  "$ref": "#/$defs/RobotSpec",
+  "$defs": {
+    "CapabilityName": {
+      "enum": ["scan", "dig", "grade", "haul", "compact", "sinter", "repair", "charge", "relay"]
+    },
+    "CapabilitySpec": {
+      "type": "object",
+      "properties": {
+        "name": { "$ref": "#/$defs/CapabilityName" },
+        "rate": { "description": "Work units per second (0 for relay).", "type": "number", "minimum": 0 },
+        "energy_wh_per_unit": { "type": "number", "minimum": 0 },
+        "capacity": { "description": "Maximum units held at once: haul payload kg, charge stored Wh.", "type": "number", "exclusiveMinimum": 0 },
+        "range_m": { "description": "Effective radius: scan footprint, relay coverage.", "type": "number", "exclusiveMinimum": 0 }
+      },
+      "required": ["name", "rate", "energy_wh_per_unit"],
+      "additionalProperties": false
+    },
+    "RobotSpec": {
+      "description": "Static advertisement of a robot, sent once at the start of a run.",
+      "type": "object",
+      "properties": {
+        "robot_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "model": { "type": "string" },
+        "mass_kg": { "type": "number", "exclusiveMinimum": 0 },
+        "battery_capacity_wh": { "type": "number", "exclusiveMinimum": 0 },
+        "max_speed_m_s": { "type": "number", "exclusiveMinimum": 0 },
+        "drive_energy_wh_per_m": { "type": "number", "minimum": 0 },
+        "idle_power_w": { "type": "number", "minimum": 0 },
+        "capabilities": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/CapabilitySpec" },
+          "minItems": 1
+        }
+      },
+      "required": ["robot_id", "mass_kg", "battery_capacity_wh", "max_speed_m_s", "drive_energy_wh_per_m", "idle_power_w", "capabilities"],
+      "additionalProperties": false
+    },
+    "ChargeStation": {
+      "description": "Fixed charging point connected to the site power grid.",
+      "type": "object",
+      "properties": {
+        "station_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "position": { "$ref": "common.schema.json#/$defs/GridCoord" },
+        "max_power_w": { "type": "number", "exclusiveMinimum": 0 },
+        "slots": { "type": "integer", "minimum": 1 }
+      },
+      "required": ["station_id", "position", "max_power_w", "slots"],
+      "additionalProperties": false
+    },
+    "Depot": {
+      "description": "Maintenance depot where towed robots can be serviced.",
+      "type": "object",
+      "properties": {
+        "depot_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "position": { "$ref": "common.schema.json#/$defs/GridCoord" }
+      },
+      "required": ["depot_id", "position"],
+      "additionalProperties": false
+    }
+  }
+}

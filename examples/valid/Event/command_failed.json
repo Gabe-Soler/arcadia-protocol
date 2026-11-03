@@ -1,0 +1,9 @@
+{
+  "type": "command_failed",
+  "t": 3010.0,
+  "command_id": "cmd-0005",
+  "robot_id": "hl-1",
+  "reason": "stuck",
+  "detail": "soft regolith at (8,9)",
+  "energy_used_wh": 95.0
+}

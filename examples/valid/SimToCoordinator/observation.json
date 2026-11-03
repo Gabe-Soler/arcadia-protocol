@@ -1,0 +1,99 @@
+{
+  "type": "observation",
+  "seq": 0,
+  "t": 0,
+  "events": [
+    {
+      "type": "comms",
+      "t": 0,
+      "link": "up",
+      "cause": "nominal",
+      "one_way_delay_s": 760
+    },
+    {
+      "type": "earth_message",
+      "t": 0,
+      "sent_t": 0,
+      "message": {
+        "type": "goal",
+        "message_id": "earth-0001",
+        "goal_id": "pad-a",
+        "priority": 10,
+        "deadline_t": 3994875,
+        "objective": {
+          "kind": "landing_pad",
+          "pad": {
+            "area": {
+              "min": {
+                "x": 10,
+                "y": 10
+              },
+              "max": {
+                "x": 29,
+                "y": 29
+              }
+            },
+            "target_elevation_m": -4102.0,
+            "surface_tolerance_m": 0.05,
+            "max_slope_deg": 2.0,
+            "stabilize": true,
+            "berm": {
+              "cells": [
+                {
+                  "x": 8,
+                  "y": 8
+                },
+                {
+                  "x": 8,
+                  "y": 9
+                },
+                {
+                  "x": 8,
+                  "y": 10
+                }
+              ],
+              "height_m": 1.5
+            }
+          }
+        }
+      }
+    }
+  ],
+  "robots": [
+    {
+      "robot_id": "ex-1",
+      "position": {
+        "x": 12,
+        "y": 9
+      },
+      "status": "working",
+      "battery_wh": 3120.5,
+      "payload_kg": 180.0,
+      "current_command": "cmd-0007",
+      "health": {
+        "wheel_slip": 0.04,
+        "motor_current_ratio": 1.08,
+        "dust_coverage": 0.12,
+        "temperature_c": -42.5
+      },
+      "in_relay_coverage": true
+    },
+    {
+      "robot_id": "hl-1",
+      "position": {
+        "x": 3,
+        "y": 3
+      },
+      "status": "charging",
+      "battery_wh": 950.0,
+      "payload_kg": 0,
+      "health": {
+        "wheel_slip": 0.02,
+        "motor_current_ratio": 1.08,
+        "dust_coverage": 0.12,
+        "temperature_c": -42.5
+      },
+      "in_relay_coverage": true
+    }
+  ]
+}

@@ -1,0 +1,183 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/Gabe-Soler/arcadia-protocol/v0.1.0/schemas/earth.schema.json",
+  "title": "Earth link messages",
+  "description": "Messages between mission control and the site coordinator. ArcadiaOS runs on Mars, so these are the messages that experience the 4-24 minute light-time delay and conjunction blackouts; robot commands do not.",
+  "$defs": {
+    "EarthToSite": {
+      "oneOf": [
+        { "$ref": "#/$defs/Goal" },
+        { "$ref": "#/$defs/Approve" },
+        { "$ref": "#/$defs/Veto" },
+        { "$ref": "#/$defs/Reprioritize" },
+        { "$ref": "#/$defs/PolicyUpdate" }
+      ]
+    },
+    "SiteToEarth": {
+      "oneOf": [
+        { "$ref": "#/$defs/Notify" },
+        { "$ref": "#/$defs/ApprovalRequest" },
+        { "$ref": "#/$defs/StatusReport" }
+      ]
+    },
+    "LandingPadSpec": {
+      "type": "object",
+      "properties": {
+        "area": { "$ref": "common.schema.json#/$defs/GridRect" },
+        "target_elevation_m": { "type": "number" },
+        "surface_tolerance_m": { "description": "Maximum allowed deviation from target elevation.", "type": "number", "exclusiveMinimum": 0 },
+        "max_slope_deg": { "type": "number", "exclusiveMinimum": 0 },
+        "stabilize": { "description": "Whether the surface must be sintered.", "type": "boolean" },
+        "berm": { "$ref": "#/$defs/BermSpec" }
+      },
+      "required": ["area", "target_elevation_m", "surface_tolerance_m", "max_slope_deg", "stabilize"],
+      "additionalProperties": false
+    },
+    "BermSpec": {
+      "type": "object",
+      "properties": {
+        "cells": {
+          "type": "array",
+          "items": { "$ref": "common.schema.json#/$defs/GridCoord" },
+          "minItems": 1
+        },
+        "height_m": { "type": "number", "exclusiveMinimum": 0 }
+      },
+      "required": ["cells", "height_m"],
+      "additionalProperties": false
+    },
+    "Goal": {
+      "type": "object",
+      "properties": {
+        "type": { "const": "goal" },
+        "message_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "goal_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "priority": { "description": "Higher runs first.", "type": "integer" },
+        "deadline_t": { "$ref": "common.schema.json#/$defs/SimTime" },
+        "objective": { "$ref": "#/$defs/Objective" }
+      },
+      "required": ["type", "message_id", "goal_id", "priority", "objective"],
+      "additionalProperties": false
+    },
+    "Objective": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": { "const": "landing_pad" },
+            "pad": { "$ref": "#/$defs/LandingPadSpec" }
+          },
+          "required": ["kind", "pad"],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "Approve": {
+      "type": "object",
+      "properties": {
+        "type": { "const": "approve" },
+        "message_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "request_id": { "description": "message_id of the approval_request being answered.", "$ref": "common.schema.json#/$defs/Id" },
+        "note": { "type": "string" }
+      },
+      "required": ["type", "message_id", "request_id"],
+      "additionalProperties": false
+    },
+    "Veto": {
+      "description": "Reject an approval request, or countermand an action already reported via notify.",
+      "type": "object",
+      "properties": {
+        "type": { "const": "veto" },
+        "message_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "request_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "note": { "type": "string" }
+      },
+      "required": ["type", "message_id", "request_id"],
+      "additionalProperties": false
+    },
+    "Reprioritize": {
+      "type": "object",
+      "properties": {
+        "type": { "const": "reprioritize" },
+        "message_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "priorities": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "goal_id": { "$ref": "common.schema.json#/$defs/Id" },
+              "priority": { "type": "integer" }
+            },
+            "required": ["goal_id", "priority"],
+            "additionalProperties": false
+          },
+          "minItems": 1
+        }
+      },
+      "required": ["type", "message_id", "priorities"],
+      "additionalProperties": false
+    },
+    "PolicyUpdate": {
+      "type": "object",
+      "properties": {
+        "type": { "const": "policy_update" },
+        "message_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "policy": { "$ref": "policy.schema.json#/$defs/Policy" }
+      },
+      "required": ["type", "message_id", "policy"],
+      "additionalProperties": false
+    },
+    "Notify": {
+      "description": "Report of a level-2 action already taken.",
+      "type": "object",
+      "properties": {
+        "type": { "const": "notify" },
+        "message_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "action": { "$ref": "policy.schema.json#/$defs/ActionName" },
+        "summary": { "type": "string" },
+        "commands": {
+          "type": "array",
+          "items": { "$ref": "common.schema.json#/$defs/Id" }
+        }
+      },
+      "required": ["type", "message_id", "action", "summary"],
+      "additionalProperties": false
+    },
+    "ApprovalRequest": {
+      "description": "Ask Earth before a level-3 or level-4 action. For level 3, if no answer arrives by `decide_by_t` the coordinator applies `fallback` and may cite this message_id as the command's approval_id.",
+      "type": "object",
+      "properties": {
+        "type": { "const": "approval_request" },
+        "message_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "action": { "$ref": "policy.schema.json#/$defs/ActionName" },
+        "summary": { "type": "string" },
+        "decide_by_t": { "$ref": "common.schema.json#/$defs/SimTime" },
+        "fallback": { "enum": ["proceed", "abort"] }
+      },
+      "required": ["type", "message_id", "action", "summary"],
+      "additionalProperties": false
+    },
+    "StatusReport": {
+      "type": "object",
+      "properties": {
+        "type": { "const": "status_report" },
+        "message_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "summary": { "type": "string" },
+        "progress": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "goal_id": { "$ref": "common.schema.json#/$defs/Id" },
+              "fraction_complete": { "type": "number", "minimum": 0, "maximum": 1 }
+            },
+            "required": ["goal_id", "fraction_complete"],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": ["type", "message_id", "summary"],
+      "additionalProperties": false
+    }
+  }
+}

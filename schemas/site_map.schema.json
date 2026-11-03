@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/Gabe-Soler/arcadia-protocol/v0.1.0/schemas/site_map.schema.json",
+  "title": "Site map",
+  "description": "A 2D grid of terrain cells. Used for ground truth (event log), for the coordinator's prior knowledge (orbital data at start), and for scan results. Fields absent from a cell are unknown to the holder of the map.",
+  "$ref": "#/$defs/SiteMap",
+  "$defs": {
+    "SiteMap": {
+      "type": "object",
+      "properties": {
+        "site_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "name": { "type": "string" },
+        "width": { "description": "Cells along x.", "type": "integer", "minimum": 1 },
+        "height": { "description": "Cells along y.", "type": "integer", "minimum": 1 },
+        "cell_size_m": { "type": "number", "exclusiveMinimum": 0 },
+        "cells": {
+          "description": "Sparse list of cells. A coordinate may appear at most once; absent coordinates are entirely unknown.",
+          "type": "array",
+          "items": { "$ref": "#/$defs/CellObservation" }
+        }
+      },
+      "required": ["site_id", "width", "height", "cell_size_m", "cells"],
+      "additionalProperties": false
+    },
+    "CellObservation": {
+      "type": "object",
+      "properties": {
+        "at": { "$ref": "common.schema.json#/$defs/GridCoord" },
+        "cell": { "$ref": "#/$defs/Cell" }
+      },
+      "required": ["at", "cell"],
+      "additionalProperties": false
+    },
+    "Cell": {
+      "type": "object",
+      "properties": {
+        "elevation_m": { "description": "Surface elevation relative to site datum.", "type": "number" },
+        "regolith": { "$ref": "#/$defs/Regolith" },
+        "boulders": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/Boulder" }
+        },
+        "surface": {
+          "description": "Construction state of the cell surface.",
+          "enum": ["natural", "cleared", "graded", "compacted", "stabilized", "berm", "stockpile"]
+        },
+        "ice_depth_m": {
+          "description": "Depth from surface to the top of buried ice (v2 missions).",
+          "type": "number",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "Regolith": {
+      "type": "object",
+      "properties": {
+        "depth_m": { "description": "Loose regolith depth above bedrock or ice.", "type": "number", "minimum": 0 },
+        "bulk_density_kg_m3": { "type": "number", "exclusiveMinimum": 0 },
+        "cohesion_kpa": { "type": "number", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "Boulder": {
+      "type": "object",
+      "properties": {
+        "diameter_m": { "type": "number", "exclusiveMinimum": 0 },
+        "mass_kg": { "type": "number", "exclusiveMinimum": 0 }
+      },
+      "required": ["diameter_m"],
+      "additionalProperties": false
+    }
+  }
+}
