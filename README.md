@@ -1,6 +1,6 @@
 # arcadia-protocol
 
-The versioned interface spec between a **coordinator** (such as [ArcadiaOS](https://github.com/Gabe-Soler/arcadiaos)) and the **ArcadiaBench** simulator ([ArcadiaBench](https://github.com/Gabe-Soler/ArcadiaBench)). The two projects never import each other's code. They only share this spec, so any team can plug a coordinator written in any language into ArcadiaBench.
+The versioned interface spec between a **coordinator** (such as [ArcadiaOS](https://github.com/Gabe-Soler/arcadiaos)) and the **ArcadiaBench** simulator ([ArcadiaBench](https://github.com/Gabe-Soler/arcadiabench)). The two projects never import each other's code. They only share this spec, so any team can plug a coordinator written in any language into ArcadiaBench.
 
 **Protocol version: 1.0.0**
 
