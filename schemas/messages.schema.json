@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/Gabe-Soler/arcadia-protocol/v0.2.0/schemas/messages.schema.json",
+  "$id": "https://raw.githubusercontent.com/Gabe-Soler/arcadia-protocol/v1.0.0/schemas/messages.schema.json",
   "title": "Simulator <-> coordinator loop",
-  "description": "The coordinator runs as a subprocess of the simulator and speaks newline-delimited JSON (one message per line) on stdin/stdout; stderr is free for logs. Sequence: sim sends hello -> coordinator replies welcome -> repeat { sim sends observation(seq=n) -> coordinator replies decision(seq=n) } -> sim sends end. Sim time does not advance while the simulator waits for a decision. Either side may send error and exit. Protocol versions are compatible when MAJOR.MINOR match (0.x releases may break on any minor bump).",
+  "description": "The coordinator runs as a subprocess of the simulator and speaks newline-delimited JSON (one message per line) on stdin/stdout; stderr is free for logs. Sequence: sim sends hello -> coordinator replies welcome -> repeat { sim sends observation(seq=n) -> coordinator replies decision(seq=n) } -> sim sends end. Sim time does not advance while the simulator waits for a decision. Either side may send error and exit. Protocol versions are compatible when MAJOR.MINOR match: the schemas reject unknown fields, so a minor release that adds one cannot be read by the previous minor's validators.",
   "oneOf": [
     { "$ref": "#/$defs/SimToCoordinator" },
     { "$ref": "#/$defs/CoordinatorToSim" }

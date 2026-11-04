@@ -2,7 +2,7 @@
 
 /// Base URI shared by every schema `$id` in this version.
 pub const BASE_URI: &str =
-    "https://raw.githubusercontent.com/Gabe-Soler/arcadia-protocol/v0.2.0/schemas/";
+    "https://raw.githubusercontent.com/Gabe-Soler/arcadia-protocol/v1.0.0/schemas/";
 
 macro_rules! schemas {
     ($($file:literal),* $(,)?) => {

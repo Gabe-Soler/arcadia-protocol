@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/Gabe-Soler/arcadia-protocol/v0.2.0/schemas/robot_state.schema.json",
+  "$id": "https://raw.githubusercontent.com/Gabe-Soler/arcadia-protocol/v1.0.0/schemas/robot_state.schema.json",
   "title": "Robot state",
   "description": "Dynamic state of one robot. Health telemetry as seen by the coordinator is noisy; ground-truth states appear only in the event log.",
   "$ref": "#/$defs/RobotState",

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/Gabe-Soler/arcadia-protocol/v0.2.0/schemas/event_log.schema.json",
+  "$id": "https://raw.githubusercontent.com/Gabe-Soler/arcadia-protocol/v1.0.0/schemas/event_log.schema.json",
   "title": "Run event log",
   "description": "One JSON record per line (JSONL), written by the simulator for every run. Contains ground truth, so it is the input for scoring and for the replay viewer. Records are in non-decreasing `t` order. The first record is run_start and the last is run_end.",
   "$ref": "#/$defs/LogRecord",
@@ -39,7 +39,7 @@
       "additionalProperties": false
     },
     "Truth": {
-      "description": "Ground-truth snapshot, written at every decision point: robot states without telemetry noise, every cell changed since the previous truth record, and the state of the site.",
+      "description": "Ground-truth snapshot, written with every observation and once more at the end of the run: robot states without telemetry noise, every cell changed since the previous truth record, and the state of the site.",
       "type": "object",
       "properties": {
         "kind": { "const": "truth" },
@@ -77,7 +77,7 @@
       "additionalProperties": false
     },
     "Observed": {
-      "description": "An event exactly as delivered to the coordinator. The record's `t` is when it was delivered; the event keeps the time it happened, which is earlier for events held back while a robot was out of coverage.",
+      "description": "An event as delivered to the coordinator. The record's `t` is the time of the observation that delivered it; the event keeps the time it happened, which is earlier for an event that rode along to a later observation or was held back while its robot was out of coverage. Events never delivered are logged at the end of the run.",
       "type": "object",
       "properties": {
         "kind": { "const": "observed" },

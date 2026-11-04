@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/Gabe-Soler/arcadia-protocol/v0.2.0/schemas/event.schema.json",
+  "$id": "https://raw.githubusercontent.com/Gabe-Soler/arcadia-protocol/v1.0.0/schemas/event.schema.json",
   "title": "Simulation event",
   "description": "Simulator -> coordinator: what the site observed since the last observation. Every event carries the sim time `t` at which it happened.",
   "$ref": "#/$defs/Event",
@@ -383,7 +383,7 @@
       ]
     },
     "FailReason": {
-      "description": "Why an accepted command stopped before finishing. fault: the robot suffered a disabled fault. stuck: the robot got stuck in soft regolith. insufficient_energy: the battery could not cover the next step, or ran out while holding or queueing. out_of_coverage: reserved; not produced under the v0.2.0 semantics. blocked: something the next step needs no longer holds, for example a cell that is not ready, nothing to load, or a busy charger or target. cancelled: stopped by a cancel command. target_lost: the robot the command was heading for moved away or was lost.",
+      "description": "Why an accepted command stopped before finishing. fault: the robot suffered a disabled fault. stuck: the robot got stuck in soft regolith. insufficient_energy: the battery could not cover the next step, or ran out while holding or queueing. out_of_coverage: reserved and never produced, because a robot that leaves coverage keeps executing its command. blocked: something the next step needs no longer holds, for example a cell that is not ready, nothing to load, or a busy charger or target. cancelled: stopped by a cancel command. target_lost: the robot the command was heading for moved away or was lost.",
       "enum": [
         "fault",
         "stuck",

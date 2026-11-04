@@ -36,7 +36,7 @@ pub use robot_state::*;
 pub use site_map::*;
 
 /// Protocol version implemented by this crate.
-pub const PROTOCOL_VERSION: &str = "0.2.0";
+pub const PROTOCOL_VERSION: &str = "1.0.0";
 
 /// Two protocol versions are compatible when MAJOR.MINOR match.
 pub fn is_compatible(a: &str, b: &str) -> bool {
@@ -60,6 +60,11 @@ mod tests {
         assert!(!is_compatible("0.1.0", "0.2.0"));
         assert!(!is_compatible("0.1.0", "1.1.0"));
         assert!(!is_compatible("0.1", "0.1.0"));
+        // From 1.0 the rule is unchanged: a minor release may add fields that
+        // the previous minor's strict schemas reject.
+        assert!(is_compatible("1.0.0", "1.0.3"));
+        assert!(!is_compatible("1.0.0", "1.1.0"));
+        assert!(!is_compatible("0.2.0", "1.0.0"));
     }
 
     #[test]

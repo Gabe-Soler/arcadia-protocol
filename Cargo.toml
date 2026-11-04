@@ -1,6 +1,6 @@
 [package]
 name = "arcadia-protocol"
-version = "0.2.0"
+version = "1.0.0"
 edition = "2024"
 description = "Interface spec between ArcadiaOS-style coordinators and the ArcadiaBench simulator."
 license = "MIT"

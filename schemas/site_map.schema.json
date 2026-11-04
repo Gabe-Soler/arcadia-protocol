@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/Gabe-Soler/arcadia-protocol/v0.2.0/schemas/site_map.schema.json",
+  "$id": "https://raw.githubusercontent.com/Gabe-Soler/arcadia-protocol/v1.0.0/schemas/site_map.schema.json",
   "title": "Site map",
   "description": "A 2D grid of terrain cells. Used for ground truth (event log), for the coordinator's prior knowledge (orbital data at start), and for scan results. Fields absent from a cell are unknown to the holder of the map.",
   "$ref": "#/$defs/SiteMap",

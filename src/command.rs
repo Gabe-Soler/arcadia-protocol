@@ -7,7 +7,8 @@ use serde::{Deserialize, Serialize};
 pub struct Command {
     pub command_id: Id,
     pub robot_id: Id,
-    /// Earth approval (or fallen-back approval request) authorising this action.
+    /// `message_id` of the approval request authorising this action: approved
+    /// by Earth, or past its deadline with fallback `proceed`.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub approval_id: Option<Id>,
     #[serde(flatten)]

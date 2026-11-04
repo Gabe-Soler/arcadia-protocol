@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/Gabe-Soler/arcadia-protocol/v0.2.0/schemas/command.schema.json",
+  "$id": "https://raw.githubusercontent.com/Gabe-Soler/arcadia-protocol/v1.0.0/schemas/command.schema.json",
   "title": "Robot command",
-  "description": "Coordinator -> simulator. One command per robot at a time; a new command for a busy robot is rejected unless the running one is cancelled first. `approval_id` cites the Earth approval (or approval request whose fallback fired) that authorised the action, so the benchmark can audit authority levels.",
+  "description": "Coordinator -> simulator. One command per robot at a time; a new command for a busy robot is rejected unless the running one is cancelled first. `approval_id` is the message_id of the coordinator's approval_request that authorises the action, approved by Earth or past its deadline with fallback `proceed`, so the benchmark can audit authority levels.",
   "$ref": "#/$defs/Command",
   "$defs": {
     "Command": {
@@ -65,7 +65,7 @@
       "additionalProperties": false
     },
     "Grade": {
-      "description": "Level the area to target elevation using material already in or next to it.",
+      "description": "Fine-level the area to target elevation. Every cell must be cleared, boulder-free and already within the grade window of the target; grading moves no material between cells.",
       "type": "object",
       "properties": {
         "type": { "const": "grade" },

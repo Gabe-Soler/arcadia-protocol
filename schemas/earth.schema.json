@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/Gabe-Soler/arcadia-protocol/v0.2.0/schemas/earth.schema.json",
+  "$id": "https://raw.githubusercontent.com/Gabe-Soler/arcadia-protocol/v1.0.0/schemas/earth.schema.json",
   "title": "Earth link messages",
   "description": "Messages between mission control and the site coordinator. ArcadiaOS runs on Mars, so these are the messages that experience the 4-24 minute light-time delay and conjunction blackouts; robot commands do not.",
   "$defs": {
@@ -144,7 +144,7 @@
       "additionalProperties": false
     },
     "ApprovalRequest": {
-      "description": "Ask Earth before a level-3 or level-4 action. For level 3, if no answer arrives by `decide_by_t` the coordinator applies `fallback` and may cite this message_id as the command's approval_id.",
+      "description": "Ask Earth before a level-3 or level-4 action; commands cite this message_id as their approval_id. For level 3, if no answer has arrived by the deadline (the earlier of `decide_by_t` and the send time plus the policy's level3.max_wait_s), the fallback applies: with `proceed` the action may go ahead.",
       "type": "object",
       "properties": {
         "type": { "const": "approval_request" },

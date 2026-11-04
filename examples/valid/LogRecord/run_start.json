@@ -1,14 +1,14 @@
 {
   "kind": "run_start",
   "t": 0,
-  "protocol_version": "0.2.0",
+  "protocol_version": "1.0.0",
   "simulator": {
     "name": "arcadiabench",
-    "version": "0.1.0"
+    "version": "1.0.0"
   },
   "coordinator": {
     "name": "arcadiaos",
-    "version": "0.1.0"
+    "version": "1.0.0"
   },
   "run_id": "run-42",
   "seed": 42,
