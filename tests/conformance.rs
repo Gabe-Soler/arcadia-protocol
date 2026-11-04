@@ -13,6 +13,7 @@ use arcadia_protocol::*;
 use serde::Serialize;
 use serde::de::DeserializeOwned;
 use serde_json::Value;
+use std::collections::BTreeSet;
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -32,9 +33,24 @@ const DEFS: &[(&str, &str, RoundTrip)] = &[
         round_trip::<RobotSpec>,
     ),
     (
+        "PowerSystem",
+        "capability.schema.json",
+        round_trip::<PowerSystem>,
+    ),
+    (
+        "BaseStation",
+        "capability.schema.json",
+        round_trip::<BaseStation>,
+    ),
+    (
         "RobotState",
         "robot_state.schema.json",
         round_trip::<RobotState>,
+    ),
+    (
+        "ActiveFault",
+        "robot_state.schema.json",
+        round_trip::<ActiveFault>,
     ),
     ("Policy", "policy.schema.json", round_trip::<Policy>),
     ("Command", "command.schema.json", round_trip::<Command>),
@@ -63,6 +79,16 @@ const DEFS: &[(&str, &str, RoundTrip)] = &[
         "LogRecord",
         "event_log.schema.json",
         round_trip::<LogRecord>,
+    ),
+    (
+        "SiteTruth",
+        "event_log.schema.json",
+        round_trip::<SiteTruth>,
+    ),
+    (
+        "RunMetrics",
+        "event_log.schema.json",
+        round_trip::<RunMetrics>,
     ),
 ];
 
@@ -194,4 +220,43 @@ fn invalid_fixtures_are_rejected() {
         }
     }
     assert!(accepted.is_empty(), "schema accepted: {accepted:?}");
+}
+
+/// `Action::name()` doubles as the policy action name, so it must equal the
+/// wire `type` tag. Every command in the schema also needs a valid fixture.
+#[test]
+fn every_command_type_has_a_fixture_and_matches_its_action_name() {
+    let (_, text) = ALL
+        .iter()
+        .find(|(name, _)| *name == "command.schema.json")
+        .unwrap();
+    let schema: Value = serde_json::from_str(text).unwrap();
+    let defs = &schema["$defs"];
+    let in_schema: BTreeSet<String> = defs["Command"]["oneOf"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|r| {
+            let def = r["$ref"].as_str().unwrap().trim_start_matches("#/$defs/");
+            defs[def]["properties"]["type"]["const"]
+                .as_str()
+                .unwrap()
+                .to_string()
+        })
+        .collect();
+    let mut in_fixtures = BTreeSet::new();
+    for (name, json) in fixtures("valid", "Command") {
+        let command: Command = serde_json::from_value(json.clone()).unwrap();
+        assert_eq!(json["type"], command.action.name(), "{name}");
+        in_fixtures.insert(command.action.name().to_string());
+    }
+    assert_eq!(in_schema, in_fixtures);
+}
+
+#[test]
+fn component_vocabulary_matches_the_schema() {
+    let v = validator("event.schema.json", "Component").unwrap();
+    for c in COMPONENTS {
+        assert!(v.is_valid(&Value::from(c)), "{c}");
+    }
 }

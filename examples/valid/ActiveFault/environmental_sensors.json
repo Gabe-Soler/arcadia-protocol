@@ -1,0 +1,7 @@
+{
+  "component": "sensors",
+  "severity": "degraded",
+  "cause": "environmental",
+  "since_t": 201500.0,
+  "field_repairable": true
+}

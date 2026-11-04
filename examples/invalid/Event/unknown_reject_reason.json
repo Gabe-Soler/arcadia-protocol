@@ -1,0 +1,8 @@
+{
+  "type": "command_rejected",
+  "t": 251000.0,
+  "command_id": "cmd-0022",
+  "robot_id": "sc-1",
+  "reason": "not_approved",
+  "detail": "site-0018 was vetoed"
+}

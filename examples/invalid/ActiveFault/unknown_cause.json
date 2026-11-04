@@ -1,0 +1,7 @@
+{
+  "component": "wheels",
+  "severity": "degraded",
+  "cause": "sabotage",
+  "since_t": 40000.0,
+  "field_repairable": true
+}

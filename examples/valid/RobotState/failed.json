@@ -1,0 +1,34 @@
+{
+  "robot_id": "ex-1",
+  "position": {
+    "x": 14,
+    "y": 11
+  },
+  "status": "failed",
+  "battery_wh": 2210.0,
+  "payload_kg": 120.0,
+  "health": {
+    "wheel_slip": 0.09,
+    "motor_current_ratio": 1.31,
+    "dust_coverage": 0.2,
+    "temperature_c": -48.0
+  },
+  "faults": [
+    {
+      "component": "drive_motor",
+      "severity": "disabled",
+      "cause": "random",
+      "since_t": 97000.0,
+      "field_repairable": false
+    },
+    {
+      "component": "wheels",
+      "severity": "degraded",
+      "cause": "wear",
+      "since_t": 40000.0,
+      "field_repairable": true
+    }
+  ],
+  "in_relay_coverage": true,
+  "telemetry_t": 97000.0
+}

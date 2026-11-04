@@ -1,0 +1,7 @@
+{
+  "mode": "fusion",
+  "fission_w": 10000,
+  "solar_peak_w": 20000,
+  "storage_capacity_wh": 100000,
+  "essential_load_w": 2000
+}

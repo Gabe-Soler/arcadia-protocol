@@ -14,5 +14,7 @@
     "dust_coverage": 0.12,
     "temperature_c": -42.5
   },
-  "in_relay_coverage": true
+  "faults": [],
+  "in_relay_coverage": true,
+  "telemetry_t": 600
 }

@@ -1,0 +1,7 @@
+{
+  "mode": "nuclear_heavy",
+  "fission_w": 40000,
+  "solar_peak_w": 5000,
+  "storage_capacity_wh": 50000,
+  "essential_load_w": 2000
+}

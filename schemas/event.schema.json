@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/Gabe-Soler/arcadia-protocol/v0.1.0/schemas/event.schema.json",
+  "$id": "https://raw.githubusercontent.com/Gabe-Soler/arcadia-protocol/v0.2.0/schemas/event.schema.json",
   "title": "Simulation event",
   "description": "Simulator -> coordinator: what the site observed since the last observation. Every event carries the sim time `t` at which it happened.",
   "$ref": "#/$defs/Event",
@@ -83,14 +83,7 @@
           "$ref": "common.schema.json#/$defs/Id"
         },
         "reason": {
-          "enum": [
-            "unknown_robot",
-            "busy",
-            "missing_capability",
-            "invalid_target",
-            "out_of_coverage",
-            "robot_disabled"
-          ]
+          "$ref": "#/$defs/RejectReason"
         },
         "detail": {
           "type": "string"
@@ -150,15 +143,7 @@
           "$ref": "common.schema.json#/$defs/Id"
         },
         "reason": {
-          "enum": [
-            "fault",
-            "stuck",
-            "insufficient_energy",
-            "out_of_coverage",
-            "blocked",
-            "cancelled",
-            "target_lost"
-          ]
+          "$ref": "#/$defs/FailReason"
         },
         "detail": {
           "type": "string"
@@ -223,22 +208,17 @@
           "$ref": "common.schema.json#/$defs/Id"
         },
         "cause": {
-          "enum": [
-            "wear",
-            "random",
-            "environmental"
-          ]
+          "$ref": "#/$defs/FaultCause"
         },
         "component": {
-          "description": "e.g. drive, arm, battery, sensor, panel.",
-          "type": "string"
+          "$ref": "#/$defs/Component"
         },
         "severity": {
-          "description": "degraded: still operable at reduced performance. disabled: cannot act until repaired.",
-          "enum": [
-            "degraded",
-            "disabled"
-          ]
+          "$ref": "#/$defs/Severity"
+        },
+        "field_repairable": {
+          "description": "Whether a field repair can clear this fault. Always true for degraded faults.",
+          "type": "boolean"
         },
         "detail": {
           "type": "string"
@@ -250,7 +230,8 @@
         "robot_id",
         "cause",
         "component",
-        "severity"
+        "severity",
+        "field_repairable"
       ],
       "additionalProperties": false
     },
@@ -264,10 +245,7 @@
           "$ref": "common.schema.json#/$defs/SimTime"
         },
         "condition": {
-          "enum": [
-            "clear",
-            "dust_storm"
-          ]
+          "$ref": "#/$defs/WeatherCondition"
         },
         "optical_depth": {
           "description": "Atmospheric dust opacity (tau). ~0.5 clear, >2 severe storm.",
@@ -345,17 +323,10 @@
           "$ref": "common.schema.json#/$defs/SimTime"
         },
         "link": {
-          "enum": [
-            "up",
-            "down"
-          ]
+          "$ref": "#/$defs/Link"
         },
         "cause": {
-          "enum": [
-            "nominal",
-            "conjunction",
-            "outage"
-          ]
+          "$ref": "#/$defs/CommsCause"
         },
         "one_way_delay_s": {
           "$ref": "common.schema.json#/$defs/Duration"
@@ -397,6 +368,72 @@
         "message"
       ],
       "additionalProperties": false
+    },
+    "RejectReason": {
+      "description": "Why a command was not accepted. unknown_robot: no robot has that id. busy: the robot is executing a command or is engaged by another robot. missing_capability: the robot lacks the capability the command needs. invalid_target: the cell, area, robot, station or depot is unknown, off the site, or not in a state the command can act on; also a reused command_id. out_of_coverage: the robot is outside comms coverage. robot_disabled: the robot is failed, stuck, offline, being towed or lost. approval_required: the action's authority level needs an Earth approval that has not been obtained. vetoed: Earth vetoed the cited approval request.",
+      "enum": [
+        "unknown_robot",
+        "busy",
+        "missing_capability",
+        "invalid_target",
+        "out_of_coverage",
+        "robot_disabled",
+        "approval_required",
+        "vetoed"
+      ]
+    },
+    "FailReason": {
+      "description": "Why an accepted command stopped before finishing. fault: the robot suffered a disabled fault. stuck: the robot got stuck in soft regolith. insufficient_energy: the battery could not cover the next step, or ran out while holding or queueing. out_of_coverage: reserved; not produced under the v0.2.0 semantics. blocked: something the next step needs no longer holds, for example a cell that is not ready, nothing to load, or a busy charger or target. cancelled: stopped by a cancel command. target_lost: the robot the command was heading for moved away or was lost.",
+      "enum": [
+        "fault",
+        "stuck",
+        "insufficient_energy",
+        "out_of_coverage",
+        "blocked",
+        "cancelled",
+        "target_lost"
+      ]
+    },
+    "FaultCause": {
+      "description": "wear: accumulated wear on the component. random: a failure with no warning. environmental: caused by the environment, such as sensors knocked out by a dust storm.",
+      "enum": [
+        "wear",
+        "random",
+        "environmental"
+      ]
+    },
+    "Severity": {
+      "description": "degraded: the robot keeps working with a component-specific penalty. disabled: the robot stops, its command fails with `fault`, and it is `failed` until the fault is cleared.",
+      "enum": [
+        "degraded",
+        "disabled"
+      ]
+    },
+    "Component": {
+      "description": "Robot component, in snake_case. ArcadiaBench v1 uses wheels, drive_motor, joints, tool, sensors and battery.",
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]{0,31}$"
+    },
+    "WeatherCondition": {
+      "enum": [
+        "clear",
+        "dust_storm"
+      ]
+    },
+    "Link": {
+      "description": "State of the Earth link.",
+      "enum": [
+        "up",
+        "down"
+      ]
+    },
+    "CommsCause": {
+      "description": "nominal: the link is in its normal state. conjunction: solar conjunction blackout. outage: unplanned outage.",
+      "enum": [
+        "nominal",
+        "conjunction",
+        "outage"
+      ]
     }
   }
 }

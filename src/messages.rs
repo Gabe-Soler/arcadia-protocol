@@ -1,6 +1,6 @@
 //! Simulator ↔ coordinator loop envelope (`messages.schema.json`).
 
-use crate::capability::{ChargeStation, Depot, RobotSpec};
+use crate::capability::{BaseStation, ChargeStation, Depot, PowerSystem, RobotSpec};
 use crate::command::Command;
 use crate::common::{Id, SimTime, SoftwareInfo};
 use crate::earth::SiteToEarth;
@@ -48,6 +48,8 @@ pub struct Scenario {
     pub robots: Vec<RobotSpec>,
     pub stations: Vec<ChargeStation>,
     pub depots: Vec<Depot>,
+    pub power: PowerSystem,
+    pub base_station: BaseStation,
     pub policy: Policy,
 }
 

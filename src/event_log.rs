@@ -1,9 +1,9 @@
 //! Run event log, one record per JSONL line (`event_log.schema.json`).
 
 use crate::command::Command;
-use crate::common::{Id, SimTime, SoftwareInfo};
+use crate::common::{Duration, Id, SimTime, SoftwareInfo};
 use crate::earth::{EarthToSite, SiteToEarth};
-use crate::event::Event;
+use crate::event::{Event, Link};
 use crate::messages::{EndReason, Scenario};
 use crate::robot_state::RobotState;
 use crate::site_map::{CellObservation, SiteMap};
@@ -33,6 +33,7 @@ pub enum LogEntry {
     Truth {
         robots: Vec<RobotState>,
         changed_cells: Vec<CellObservation>,
+        site: SiteTruth,
     },
     Observed {
         event: Event,
@@ -52,5 +53,88 @@ pub enum LogEntry {
     },
     RunEnd {
         reason: EndReason,
+        metrics: RunMetrics,
     },
+}
+
+/// True state of the site power grid, sky and Earth link at a truth record's `t`.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct SiteTruth {
+    pub storage_wh: f64,
+    pub solar_w: f64,
+    pub fission_w: f64,
+    /// Essential load plus the charging power stations are delivering.
+    pub demand_w: f64,
+    pub optical_depth: f64,
+    /// Ambient air temperature.
+    pub temperature_c: f64,
+    pub link: Link,
+    pub one_way_delay_s: Duration,
+}
+
+/// Outcome of a run, computed from ground truth. `docs/semantics.md` defines
+/// every field.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+pub struct RunMetrics {
+    /// The run ended `goals_complete`.
+    pub completed: bool,
+    /// `(end t - start_t) / sol_length_s`.
+    pub sols: f64,
+    pub decisions: u64,
+    pub commands: u64,
+    pub commands_rejected: u64,
+    pub quality: QualityMetrics,
+    pub energy: EnergyMetrics,
+    pub fleet: FleetMetrics,
+    pub autonomy: AutonomyMetrics,
+    pub conditions: ConditionMetrics,
+}
+
+/// The pad at the end of the run, against the goal's spec.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+pub struct QualityMetrics {
+    pub cells_total: u64,
+    pub cells_in_spec: u64,
+    pub rms_error_m: f64,
+    pub max_abs_error_m: f64,
+    pub max_slope_deg: f64,
+    pub berm_complete: bool,
+    pub verified: bool,
+}
+
+/// Energy use and the closest approach to a power deficit.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+pub struct EnergyMetrics {
+    pub robot_energy_wh: f64,
+    pub grid_energy_wh: f64,
+    pub min_storage_wh: f64,
+    pub min_storage_fraction: f64,
+    pub deficit_s: Duration,
+}
+
+/// Robot time and robots lost to faults.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+pub struct FleetMetrics {
+    pub faults: u64,
+    pub robot_hours_lost: f64,
+    pub robots_lost: u64,
+}
+
+/// Traffic to Earth and time spent waiting on it.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+pub struct AutonomyMetrics {
+    pub downlink_messages: u64,
+    pub approval_requests: u64,
+    pub notifications: u64,
+    pub status_reports: u64,
+    pub approval_wait_s: Duration,
+    pub policy_violations: u64,
+}
+
+/// How much adversity the run contained.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+pub struct ConditionMetrics {
+    pub storm_s: Duration,
+    pub blackout_s: Duration,
+    pub outage_s: Duration,
 }

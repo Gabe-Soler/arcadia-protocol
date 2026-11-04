@@ -1,6 +1,6 @@
 {
   "type": "hello",
-  "protocol_version": "0.1.0",
+  "protocol_version": "0.2.0",
   "simulator": {
     "name": "arcadiabench",
     "version": "0.1.0"
@@ -137,6 +137,20 @@
         }
       }
     ],
+    "power": {
+      "mode": "hybrid",
+      "fission_w": 10000,
+      "solar_peak_w": 20000,
+      "storage_capacity_wh": 100000,
+      "essential_load_w": 2000
+    },
+    "base_station": {
+      "position": {
+        "x": 5,
+        "y": 5
+      },
+      "range_m": 30
+    },
     "policy": {
       "policy_version": 1,
       "default_level": 1,

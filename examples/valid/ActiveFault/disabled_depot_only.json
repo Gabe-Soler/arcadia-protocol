@@ -1,0 +1,7 @@
+{
+  "component": "drive_motor",
+  "severity": "disabled",
+  "cause": "random",
+  "since_t": 97000.0,
+  "field_repairable": false
+}

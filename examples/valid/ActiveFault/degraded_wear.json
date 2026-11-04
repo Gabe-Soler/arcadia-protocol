@@ -1,0 +1,7 @@
+{
+  "component": "wheels",
+  "severity": "degraded",
+  "cause": "wear",
+  "since_t": 40000.0,
+  "field_repairable": true
+}

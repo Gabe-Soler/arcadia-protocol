@@ -1,0 +1,20 @@
+{
+  "robot_id": "hl-1",
+  "position": {
+    "x": 35,
+    "y": 38
+  },
+  "status": "moving",
+  "battery_wh": 7400.0,
+  "payload_kg": 0,
+  "current_command": "cmd-0013",
+  "health": {
+    "wheel_slip": 0.02,
+    "motor_current_ratio": 1.08,
+    "dust_coverage": 0.12,
+    "temperature_c": -42.5
+  },
+  "faults": [],
+  "in_relay_coverage": false,
+  "telemetry_t": 151200.0
+}

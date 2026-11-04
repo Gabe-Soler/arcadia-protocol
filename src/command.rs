@@ -56,6 +56,11 @@ pub enum Action {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         beneficiary_robot: Option<Id>,
     },
+    /// Drive to the depot and be serviced: clears every fault and resets wear.
+    Service {
+        /// The depot's `depot_id`.
+        depot: Id,
+    },
     Charge {
         /// A station_id or the robot_id of a mobile charger.
         source: Id,
@@ -87,6 +92,7 @@ impl Action {
             Action::Repair { .. } => "repair",
             Action::Tow { .. } => "tow",
             Action::Cannibalize { .. } => "cannibalize",
+            Action::Service { .. } => "service",
             Action::Charge { .. } => "charge",
             Action::Relay { .. } => "relay",
             Action::Wait { .. } => "wait",

@@ -1,0 +1,41 @@
+{
+  "completed": false,
+  "sols": 60,
+  "decisions": 1931,
+  "commands": 2210,
+  "commands_rejected": 41,
+  "quality": {
+    "cells_total": 400,
+    "cells_in_spec": 212,
+    "rms_error_m": 0.183,
+    "max_abs_error_m": 0.62,
+    "max_slope_deg": 14.2,
+    "berm_complete": false,
+    "verified": false
+  },
+  "energy": {
+    "robot_energy_wh": 1420877.25,
+    "grid_energy_wh": 1302440.5,
+    "min_storage_wh": 0,
+    "min_storage_fraction": 0,
+    "deficit_s": 86400.0
+  },
+  "fleet": {
+    "faults": 15,
+    "robot_hours_lost": 410.25,
+    "robots_lost": 1
+  },
+  "autonomy": {
+    "downlink_messages": 75,
+    "approval_requests": 4,
+    "notifications": 12,
+    "status_reports": 59,
+    "approval_wait_s": 14400.0,
+    "policy_violations": 2
+  },
+  "conditions": {
+    "storm_s": 0,
+    "blackout_s": 1243000.0,
+    "outage_s": 0
+  }
+}

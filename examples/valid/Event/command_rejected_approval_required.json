@@ -1,0 +1,8 @@
+{
+  "type": "command_rejected",
+  "t": 250100.0,
+  "command_id": "cmd-0010",
+  "robot_id": "sc-1",
+  "reason": "approval_required",
+  "detail": "cannibalize is level 3 and site-0017 has no answer yet"
+}

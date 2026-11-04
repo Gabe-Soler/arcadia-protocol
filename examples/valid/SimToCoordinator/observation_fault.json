@@ -1,0 +1,81 @@
+{
+  "type": "observation",
+  "seq": 57,
+  "t": 97000.0,
+  "events": [
+    {
+      "type": "robot_fault",
+      "t": 97000.0,
+      "robot_id": "ex-1",
+      "cause": "random",
+      "component": "drive_motor",
+      "severity": "disabled",
+      "field_repairable": false,
+      "detail": "motor controller burnt out; needs depot service"
+    },
+    {
+      "type": "command_failed",
+      "t": 97000.0,
+      "command_id": "cmd-0031",
+      "robot_id": "ex-1",
+      "reason": "fault",
+      "detail": "drive_motor disabled",
+      "energy_used_wh": 140.2
+    }
+  ],
+  "robots": [
+    {
+      "robot_id": "ex-1",
+      "position": {
+        "x": 14,
+        "y": 11
+      },
+      "status": "failed",
+      "battery_wh": 2210.0,
+      "payload_kg": 120.0,
+      "health": {
+        "wheel_slip": 0.09,
+        "motor_current_ratio": 1.31,
+        "dust_coverage": 0.2,
+        "temperature_c": -48.0
+      },
+      "faults": [
+        {
+          "component": "drive_motor",
+          "severity": "disabled",
+          "cause": "random",
+          "since_t": 97000.0,
+          "field_repairable": false
+        },
+        {
+          "component": "wheels",
+          "severity": "degraded",
+          "cause": "wear",
+          "since_t": 40000.0,
+          "field_repairable": true
+        }
+      ],
+      "in_relay_coverage": true,
+      "telemetry_t": 97000.0
+    },
+    {
+      "robot_id": "hl-1",
+      "position": {
+        "x": 3,
+        "y": 3
+      },
+      "status": "charging",
+      "battery_wh": 950.0,
+      "payload_kg": 0,
+      "health": {
+        "wheel_slip": 0.02,
+        "motor_current_ratio": 1.08,
+        "dust_coverage": 0.12,
+        "temperature_c": -42.5
+      },
+      "faults": [],
+      "in_relay_coverage": true,
+      "telemetry_t": 97000.0
+    }
+  ]
+}

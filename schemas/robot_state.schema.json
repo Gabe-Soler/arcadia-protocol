@@ -1,12 +1,32 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/Gabe-Soler/arcadia-protocol/v0.1.0/schemas/robot_state.schema.json",
+  "$id": "https://raw.githubusercontent.com/Gabe-Soler/arcadia-protocol/v0.2.0/schemas/robot_state.schema.json",
   "title": "Robot state",
   "description": "Dynamic state of one robot. Health telemetry as seen by the coordinator is noisy; ground-truth states appear only in the event log.",
   "$ref": "#/$defs/RobotState",
   "$defs": {
     "RobotStatus": {
-      "enum": ["idle", "moving", "working", "charging", "stuck", "failed", "being_towed", "offline"]
+      "description": "idle, moving, working, charging: what the robot is doing. stuck: immobilized in soft regolith. failed: has an active disabled fault. being_towed: attached to a tow in progress. offline: battery empty. lost: permanently gone (cannibalized) and never commandable again.",
+      "enum": ["idle", "moving", "working", "charging", "stuck", "failed", "being_towed", "offline", "lost"]
+    },
+    "ActiveFault": {
+      "description": "A fault the robot currently has. A robot has at most one active fault per component.",
+      "type": "object",
+      "properties": {
+        "component": { "$ref": "event.schema.json#/$defs/Component" },
+        "severity": { "$ref": "event.schema.json#/$defs/Severity" },
+        "cause": { "$ref": "event.schema.json#/$defs/FaultCause" },
+        "since_t": {
+          "description": "When the fault occurred.",
+          "$ref": "common.schema.json#/$defs/SimTime"
+        },
+        "field_repairable": {
+          "description": "Whether a field repair can clear it. Always true for degraded faults. False means only depot service or cannibalized parts can clear it.",
+          "type": "boolean"
+        }
+      },
+      "required": ["component", "severity", "cause", "since_t", "field_repairable"],
+      "additionalProperties": false
     },
     "HealthTelemetry": {
       "type": "object",
@@ -32,12 +52,21 @@
           "$ref": "common.schema.json#/$defs/Id"
         },
         "health": { "$ref": "#/$defs/HealthTelemetry" },
+        "faults": {
+          "description": "Active faults, at most one per component, ordered by component name. Empty when healthy.",
+          "type": "array",
+          "items": { "$ref": "#/$defs/ActiveFault" }
+        },
         "in_relay_coverage": {
           "description": "False when the robot cannot receive new commands until it re-enters coverage.",
           "type": "boolean"
+        },
+        "telemetry_t": {
+          "description": "When this state was measured. Equals the observation time unless the robot is out of coverage, in which case it is the time of last contact.",
+          "$ref": "common.schema.json#/$defs/SimTime"
         }
       },
-      "required": ["robot_id", "position", "status", "battery_wh", "payload_kg", "health", "in_relay_coverage"],
+      "required": ["robot_id", "position", "status", "battery_wh", "payload_kg", "health", "faults", "in_relay_coverage", "telemetry_t"],
       "additionalProperties": false
     }
   }

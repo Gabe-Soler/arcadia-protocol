@@ -1,0 +1,10 @@
+{
+  "type": "robot_fault",
+  "t": 201500.0,
+  "robot_id": "sc-1",
+  "cause": "environmental",
+  "component": "sensors",
+  "severity": "degraded",
+  "field_repairable": true,
+  "detail": "dust storm"
+}

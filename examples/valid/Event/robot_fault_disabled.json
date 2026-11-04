@@ -1,0 +1,10 @@
+{
+  "type": "robot_fault",
+  "t": 97000.0,
+  "robot_id": "ex-1",
+  "cause": "random",
+  "component": "drive_motor",
+  "severity": "disabled",
+  "field_repairable": false,
+  "detail": "motor controller burnt out; needs depot service"
+}

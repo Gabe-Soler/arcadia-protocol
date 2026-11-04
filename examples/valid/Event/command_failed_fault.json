@@ -1,0 +1,9 @@
+{
+  "type": "command_failed",
+  "t": 97000.0,
+  "command_id": "cmd-0031",
+  "robot_id": "ex-1",
+  "reason": "fault",
+  "detail": "drive_motor disabled",
+  "energy_used_wh": 140.2
+}

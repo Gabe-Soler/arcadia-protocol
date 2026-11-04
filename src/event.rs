@@ -48,8 +48,11 @@ pub enum EventKind {
     RobotFault {
         robot_id: Id,
         cause: FaultCause,
+        /// One of [`crate::COMPONENTS`] in ArcadiaBench v1.
         component: String,
         severity: Severity,
+        /// Whether a field repair can clear it. Always true for degraded faults.
+        field_repairable: bool,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         detail: Option<String>,
     },
@@ -88,6 +91,10 @@ pub enum RejectReason {
     InvalidTarget,
     OutOfCoverage,
     RobotDisabled,
+    /// The action's authority level needs an Earth approval not yet obtained.
+    ApprovalRequired,
+    /// Earth vetoed the cited approval request.
+    Vetoed,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -113,7 +120,9 @@ pub enum FaultCause {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Severity {
+    /// The robot keeps working with a component-specific penalty.
     Degraded,
+    /// The robot stops and is `failed` until the fault is cleared.
     Disabled,
 }
 

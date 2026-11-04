@@ -1,0 +1,10 @@
+{
+  "storage_wh": 0,
+  "solar_w": 2100.5,
+  "fission_w": 10000,
+  "demand_w": 14000,
+  "optical_depth": 3.1,
+  "temperature_c": -61.0,
+  "link": "down",
+  "one_way_delay_s": 1320
+}

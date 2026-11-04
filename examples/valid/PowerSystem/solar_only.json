@@ -1,0 +1,7 @@
+{
+  "mode": "solar_only",
+  "fission_w": 0,
+  "solar_peak_w": 30000,
+  "storage_capacity_wh": 250000,
+  "essential_load_w": 2000
+}

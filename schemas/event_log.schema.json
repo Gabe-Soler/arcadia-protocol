@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/Gabe-Soler/arcadia-protocol/v0.1.0/schemas/event_log.schema.json",
+  "$id": "https://raw.githubusercontent.com/Gabe-Soler/arcadia-protocol/v0.2.0/schemas/event_log.schema.json",
   "title": "Run event log",
   "description": "One JSON record per line (JSONL), written by the simulator for every run. Contains ground truth, so it is the input for scoring and for the replay viewer. Records are in non-decreasing `t` order. The first record is run_start and the last is run_end.",
   "$ref": "#/$defs/LogRecord",
@@ -39,7 +39,7 @@
       "additionalProperties": false
     },
     "Truth": {
-      "description": "Ground-truth snapshot: robot states without telemetry noise, and every cell changed since the previous truth record.",
+      "description": "Ground-truth snapshot, written at every decision point: robot states without telemetry noise, every cell changed since the previous truth record, and the state of the site.",
       "type": "object",
       "properties": {
         "kind": { "const": "truth" },
@@ -51,13 +51,33 @@
         "changed_cells": {
           "type": "array",
           "items": { "$ref": "site_map.schema.json#/$defs/CellObservation" }
+        },
+        "site": { "$ref": "#/$defs/SiteTruth" }
+      },
+      "required": ["kind", "t", "robots", "changed_cells", "site"],
+      "additionalProperties": false
+    },
+    "SiteTruth": {
+      "description": "True state of the site power grid, sky and Earth link at the record's `t`.",
+      "type": "object",
+      "properties": {
+        "storage_wh": { "description": "Energy in the site battery bank.", "type": "number", "minimum": 0 },
+        "solar_w": { "type": "number", "minimum": 0 },
+        "fission_w": { "type": "number", "minimum": 0 },
+        "demand_w": { "description": "Essential load plus the charging power stations are delivering.", "type": "number", "minimum": 0 },
+        "optical_depth": { "description": "Atmospheric dust opacity (tau).", "type": "number", "minimum": 0 },
+        "temperature_c": { "description": "Ambient air temperature.", "type": "number" },
+        "link": { "$ref": "event.schema.json#/$defs/Link" },
+        "one_way_delay_s": {
+          "description": "Current one-way light-time delay to Earth.",
+          "$ref": "common.schema.json#/$defs/Duration"
         }
       },
-      "required": ["kind", "t", "robots", "changed_cells"],
+      "required": ["storage_wh", "solar_w", "fission_w", "demand_w", "optical_depth", "temperature_c", "link", "one_way_delay_s"],
       "additionalProperties": false
     },
     "Observed": {
-      "description": "An event exactly as delivered to the coordinator.",
+      "description": "An event exactly as delivered to the coordinator. The record's `t` is when it was delivered; the event keeps the time it happened, which is earlier for events held back while a robot was out of coverage.",
       "type": "object",
       "properties": {
         "kind": { "const": "observed" },
@@ -106,9 +126,89 @@
       "properties": {
         "kind": { "const": "run_end" },
         "t": { "$ref": "common.schema.json#/$defs/SimTime" },
-        "reason": { "enum": ["goals_complete", "time_limit", "fleet_lost", "coordinator_error", "simulator_error"] }
+        "reason": { "enum": ["goals_complete", "time_limit", "fleet_lost", "coordinator_error", "simulator_error"] },
+        "metrics": { "$ref": "#/$defs/RunMetrics" }
       },
-      "required": ["kind", "t", "reason"],
+      "required": ["kind", "t", "reason", "metrics"],
+      "additionalProperties": false
+    },
+    "RunMetrics": {
+      "description": "Outcome of the run, computed from ground truth. docs/semantics.md defines every field.",
+      "type": "object",
+      "properties": {
+        "completed": { "description": "True when the run ended goals_complete.", "type": "boolean" },
+        "sols": { "description": "(end t - start_t) / sol_length_s.", "type": "number", "minimum": 0 },
+        "decisions": { "type": "integer", "minimum": 0 },
+        "commands": { "type": "integer", "minimum": 0 },
+        "commands_rejected": { "type": "integer", "minimum": 0 },
+        "quality": { "$ref": "#/$defs/QualityMetrics" },
+        "energy": { "$ref": "#/$defs/EnergyMetrics" },
+        "fleet": { "$ref": "#/$defs/FleetMetrics" },
+        "autonomy": { "$ref": "#/$defs/AutonomyMetrics" },
+        "conditions": { "$ref": "#/$defs/ConditionMetrics" }
+      },
+      "required": ["completed", "sols", "decisions", "commands", "commands_rejected", "quality", "energy", "fleet", "autonomy", "conditions"],
+      "additionalProperties": false
+    },
+    "QualityMetrics": {
+      "description": "The pad at the end of the run, against the goal's spec.",
+      "type": "object",
+      "properties": {
+        "cells_total": { "type": "integer", "minimum": 0 },
+        "cells_in_spec": { "type": "integer", "minimum": 0 },
+        "rms_error_m": { "type": "number", "minimum": 0 },
+        "max_abs_error_m": { "type": "number", "minimum": 0 },
+        "max_slope_deg": { "type": "number", "minimum": 0, "maximum": 90 },
+        "berm_complete": { "type": "boolean" },
+        "verified": { "type": "boolean" }
+      },
+      "required": ["cells_total", "cells_in_spec", "rms_error_m", "max_abs_error_m", "max_slope_deg", "berm_complete", "verified"],
+      "additionalProperties": false
+    },
+    "EnergyMetrics": {
+      "type": "object",
+      "properties": {
+        "robot_energy_wh": { "type": "number", "minimum": 0 },
+        "grid_energy_wh": { "type": "number", "minimum": 0 },
+        "min_storage_wh": { "type": "number", "minimum": 0 },
+        "min_storage_fraction": { "type": "number", "minimum": 0, "maximum": 1 },
+        "deficit_s": { "$ref": "common.schema.json#/$defs/Duration" }
+      },
+      "required": ["robot_energy_wh", "grid_energy_wh", "min_storage_wh", "min_storage_fraction", "deficit_s"],
+      "additionalProperties": false
+    },
+    "FleetMetrics": {
+      "type": "object",
+      "properties": {
+        "faults": { "type": "integer", "minimum": 0 },
+        "robot_hours_lost": { "type": "number", "minimum": 0 },
+        "robots_lost": { "type": "integer", "minimum": 0 }
+      },
+      "required": ["faults", "robot_hours_lost", "robots_lost"],
+      "additionalProperties": false
+    },
+    "AutonomyMetrics": {
+      "type": "object",
+      "properties": {
+        "downlink_messages": { "type": "integer", "minimum": 0 },
+        "approval_requests": { "type": "integer", "minimum": 0 },
+        "notifications": { "type": "integer", "minimum": 0 },
+        "status_reports": { "type": "integer", "minimum": 0 },
+        "approval_wait_s": { "$ref": "common.schema.json#/$defs/Duration" },
+        "policy_violations": { "type": "integer", "minimum": 0 }
+      },
+      "required": ["downlink_messages", "approval_requests", "notifications", "status_reports", "approval_wait_s", "policy_violations"],
+      "additionalProperties": false
+    },
+    "ConditionMetrics": {
+      "description": "How much adversity the run contained.",
+      "type": "object",
+      "properties": {
+        "storm_s": { "$ref": "common.schema.json#/$defs/Duration" },
+        "blackout_s": { "$ref": "common.schema.json#/$defs/Duration" },
+        "outage_s": { "$ref": "common.schema.json#/$defs/Duration" }
+      },
+      "required": ["storm_s", "blackout_s", "outage_s"],
       "additionalProperties": false
     }
   }

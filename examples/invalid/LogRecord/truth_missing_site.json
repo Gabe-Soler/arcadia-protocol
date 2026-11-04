@@ -1,0 +1,45 @@
+{
+  "kind": "truth",
+  "t": 600,
+  "robots": [
+    {
+      "robot_id": "ex-1",
+      "position": {
+        "x": 12,
+        "y": 9
+      },
+      "status": "working",
+      "battery_wh": 3120.5,
+      "payload_kg": 180.0,
+      "current_command": "cmd-0007",
+      "health": {
+        "wheel_slip": 0.04,
+        "motor_current_ratio": 1.08,
+        "dust_coverage": 0.12,
+        "temperature_c": -42.5
+      },
+      "faults": [],
+      "in_relay_coverage": true,
+      "telemetry_t": 600
+    }
+  ],
+  "changed_cells": [
+    {
+      "at": {
+        "x": 12,
+        "y": 12
+      },
+      "cell": {
+        "elevation_m": -4102.31,
+        "regolith": {
+          "depth_m": 0.8,
+          "bulk_density_kg_m3": 1520,
+          "cohesion_kpa": 1.2
+        },
+        "boulders": [],
+        "surface": "cleared",
+        "ice_depth_m": 1.9
+      }
+    }
+  ]
+}

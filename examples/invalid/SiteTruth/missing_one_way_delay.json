@@ -1,0 +1,9 @@
+{
+  "storage_wh": 64000,
+  "solar_w": 18000,
+  "fission_w": 10000,
+  "demand_w": 5000,
+  "optical_depth": 0.5,
+  "temperature_c": -31.2,
+  "link": "up"
+}

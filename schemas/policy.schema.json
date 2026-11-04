@@ -1,12 +1,12 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/Gabe-Soler/arcadia-protocol/v0.1.0/schemas/policy.schema.json",
+  "$id": "https://raw.githubusercontent.com/Gabe-Soler/arcadia-protocol/v0.2.0/schemas/policy.schema.json",
   "title": "Authority policy",
   "description": "Maps every coordinator action to an authority level. 1 autonomous: do it. 2 notify: do it, then report. 3 approve-if-reachable: ask first; if no answer by the deadline, apply the fallback. 4 hold for Earth: never done without an explicit approve. Earth can replace the policy at any time with a policy_update message.",
   "$ref": "#/$defs/Policy",
   "$defs": {
     "ActionName": {
-      "description": "snake_case action name. Robot-level actions match command types (move_to, dig, cannibalize, ...); coordinator-level actions include replan, reassign_task, abandon_section, commit_energy_reserve.",
+      "description": "snake_case action name. Robot-level actions match command types (move_to, dig, cannibalize, service, ...); coordinator-level actions include replan, reassign_task, abandon_section, commit_energy_reserve.",
       "type": "string",
       "pattern": "^[a-z][a-z0-9_]{0,63}$"
     },

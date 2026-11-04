@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/Gabe-Soler/arcadia-protocol/v0.1.0/schemas/capability.schema.json",
-  "title": "Capabilities and robot specs",
-  "description": "Robots are defined by what they can do, not by type. Each capability has a fixed work unit: scan m2, dig m3, grade m2, haul kg, compact m2, sinter m2, repair health-fraction, charge Wh, relay m (coverage radius, no rate).",
+  "$id": "https://raw.githubusercontent.com/Gabe-Soler/arcadia-protocol/v0.2.0/schemas/capability.schema.json",
+  "title": "Capabilities, robot specs and site infrastructure",
+  "description": "Robots are defined by what they can do, not by type. Each capability has a fixed work unit: scan m2, dig m3, grade m2, haul kg, compact m2, sinter m2, repair health-fraction, charge Wh, relay m (coverage radius, no rate). Also defines the fixed site infrastructure: charge stations, depots, the power system and the comms base station.",
   "$ref": "#/$defs/RobotSpec",
   "$defs": {
     "CapabilityName": {
@@ -53,13 +53,40 @@
       "additionalProperties": false
     },
     "Depot": {
-      "description": "Maintenance depot where towed robots can be serviced.",
+      "description": "Maintenance depot. A robot on the depot's cell can be serviced there with the `service` command, which clears every fault and resets wear.",
       "type": "object",
       "properties": {
         "depot_id": { "$ref": "common.schema.json#/$defs/Id" },
         "position": { "$ref": "common.schema.json#/$defs/GridCoord" }
       },
       "required": ["depot_id", "position"],
+      "additionalProperties": false
+    },
+    "PowerMode": {
+      "description": "Power architecture of the site. hybrid: fission baseline plus solar and storage (the default). solar_only: solar and storage only. nuclear_heavy: mostly fission.",
+      "enum": ["hybrid", "solar_only", "nuclear_heavy"]
+    },
+    "PowerSystem": {
+      "description": "The site power grid. Supply is fission plus solar (clear-sky peak scaled by the day curve and dust transmittance). Demand is the essential load plus station charging. Surplus fills storage up to capacity and deficits are drawn from it.",
+      "type": "object",
+      "properties": {
+        "mode": { "$ref": "#/$defs/PowerMode" },
+        "fission_w": { "description": "Constant fission output.", "type": "number", "minimum": 0 },
+        "solar_peak_w": { "description": "Solar output at noon under a clear sky.", "type": "number", "minimum": 0 },
+        "storage_capacity_wh": { "description": "Capacity of the site battery bank.", "type": "number", "minimum": 0 },
+        "essential_load_w": { "description": "Always-on site load, served before any charging.", "type": "number", "minimum": 0 }
+      },
+      "required": ["mode", "fission_w", "solar_peak_w", "storage_capacity_wh", "essential_load_w"],
+      "additionalProperties": false
+    },
+    "BaseStation": {
+      "description": "The site comms hub. A robot is in coverage within `range_m` of it, or within range of an active relay that is itself in coverage.",
+      "type": "object",
+      "properties": {
+        "position": { "$ref": "common.schema.json#/$defs/GridCoord" },
+        "range_m": { "description": "Direct coverage radius in metres, measured between cell centres.", "type": "number", "exclusiveMinimum": 0 }
+      },
+      "required": ["position", "range_m"],
       "additionalProperties": false
     }
   }

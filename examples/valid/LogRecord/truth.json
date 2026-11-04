@@ -18,7 +18,9 @@
         "dust_coverage": 0.12,
         "temperature_c": -42.5
       },
-      "in_relay_coverage": true
+      "faults": [],
+      "in_relay_coverage": true,
+      "telemetry_t": 600
     }
   ],
   "changed_cells": [
@@ -39,5 +41,15 @@
         "ice_depth_m": 1.9
       }
     }
-  ]
+  ],
+  "site": {
+    "storage_wh": 64000,
+    "solar_w": 18000,
+    "fission_w": 10000,
+    "demand_w": 5000,
+    "optical_depth": 0.5,
+    "temperature_c": -31.2,
+    "link": "up",
+    "one_way_delay_s": 760
+  }
 }

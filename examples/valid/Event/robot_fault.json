@@ -3,6 +3,7 @@
   "t": 40000.0,
   "robot_id": "ex-1",
   "cause": "wear",
-  "component": "drive",
-  "severity": "degraded"
+  "component": "wheels",
+  "severity": "degraded",
+  "field_repairable": true
 }

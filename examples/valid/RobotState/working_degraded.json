@@ -1,0 +1,28 @@
+{
+  "robot_id": "sc-1",
+  "position": {
+    "x": 20,
+    "y": 20
+  },
+  "status": "working",
+  "battery_wh": 1012.7,
+  "payload_kg": 0,
+  "current_command": "cmd-0041",
+  "health": {
+    "wheel_slip": 0.03,
+    "motor_current_ratio": 1.02,
+    "dust_coverage": 0.44,
+    "temperature_c": -49.0
+  },
+  "faults": [
+    {
+      "component": "sensors",
+      "severity": "degraded",
+      "cause": "environmental",
+      "since_t": 201500.0,
+      "field_repairable": true
+    }
+  ],
+  "in_relay_coverage": true,
+  "telemetry_t": 203000.0
+}

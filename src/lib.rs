@@ -3,7 +3,9 @@
 //! The JSON Schemas in `schemas/` are the source of truth. These types mirror
 //! them structurally but are lenient: they do not enforce patterns, ranges or
 //! unknown-field rejection. Enable the `validate` feature for strict checking
-//! against the embedded schemas.
+//! against the embedded schemas. The behaviour behind the messages (decision
+//! points, command preconditions and effects, faults, energy, comms,
+//! authority and run metrics) is specified in `docs/semantics.md`.
 //!
 //! Units are SI throughout: metres, seconds, kilograms, watt-hours, watts.
 
@@ -34,7 +36,7 @@ pub use robot_state::*;
 pub use site_map::*;
 
 /// Protocol version implemented by this crate.
-pub const PROTOCOL_VERSION: &str = "0.1.0";
+pub const PROTOCOL_VERSION: &str = "0.2.0";
 
 /// Two protocol versions are compatible when MAJOR.MINOR match.
 pub fn is_compatible(a: &str, b: &str) -> bool {

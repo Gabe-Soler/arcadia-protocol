@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/Gabe-Soler/arcadia-protocol/v0.1.0/schemas/command.schema.json",
+  "$id": "https://raw.githubusercontent.com/Gabe-Soler/arcadia-protocol/v0.2.0/schemas/command.schema.json",
   "title": "Robot command",
   "description": "Coordinator -> simulator. One command per robot at a time; a new command for a busy robot is rejected unless the running one is cancelled first. `approval_id` cites the Earth approval (or approval request whose fallback fired) that authorised the action, so the benchmark can audit authority levels.",
   "$ref": "#/$defs/Command",
@@ -17,6 +17,7 @@
         { "$ref": "#/$defs/Repair" },
         { "$ref": "#/$defs/Tow" },
         { "$ref": "#/$defs/Cannibalize" },
+        { "$ref": "#/$defs/Service" },
         { "$ref": "#/$defs/Charge" },
         { "$ref": "#/$defs/Relay" },
         { "$ref": "#/$defs/Wait" },
@@ -118,7 +119,7 @@
       "additionalProperties": false
     },
     "Repair": {
-      "description": "Field repair of another robot; the repairer drives to it first.",
+      "description": "Field repair of another robot; the repairer drives to it first. Clears the target's field-repairable faults, reduces its wear and frees it if stuck.",
       "type": "object",
       "properties": {
         "type": { "const": "repair" },
@@ -145,7 +146,7 @@
       "additionalProperties": false
     },
     "Cannibalize": {
-      "description": "Strip a failed robot for parts. Irreversible: the target is permanently lost; `beneficiary_robot` (default: the executor) receives a health restoration.",
+      "description": "Strip a failed or offline robot for parts. Irreversible: the target becomes `lost`. The parts go to `beneficiary_robot` (default: the executor), clearing all of its faults and resetting its wear.",
       "type": "object",
       "properties": {
         "type": { "const": "cannibalize" },
@@ -158,8 +159,24 @@
       "required": ["type", "command_id", "robot_id", "target_robot"],
       "additionalProperties": false
     },
+    "Service": {
+      "description": "Drive to the depot and be serviced there: clears every fault, including ones that are not field repairable, and resets wear. Does not charge the battery. A failed, stuck or offline robot can be serviced only if it is already on the depot's cell.",
+      "type": "object",
+      "properties": {
+        "type": { "const": "service" },
+        "command_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "robot_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "approval_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "depot": {
+          "description": "depot_id of the depot.",
+          "$ref": "common.schema.json#/$defs/Id"
+        }
+      },
+      "required": ["type", "command_id", "robot_id", "depot"],
+      "additionalProperties": false
+    },
     "Charge": {
-      "description": "Charge from a station (`source` is a station_id) or a mobile charger (`source` is a robot_id with the charge capability). The robot drives to the source first. Stops at `until_wh` or full.",
+      "description": "Charge from a station (`source` is a station_id) or a mobile charger (`source` is a robot_id with the charge capability). The robot drives to the source first. Stops at `until_wh` or full. An offline robot can charge only if it is already at the source.",
       "type": "object",
       "properties": {
         "type": { "const": "charge" },

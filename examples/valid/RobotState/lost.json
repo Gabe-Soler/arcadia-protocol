@@ -1,0 +1,27 @@
+{
+  "robot_id": "ex-2",
+  "position": {
+    "x": 30,
+    "y": 8
+  },
+  "status": "lost",
+  "battery_wh": 0,
+  "payload_kg": 0,
+  "health": {
+    "wheel_slip": 0.06,
+    "motor_current_ratio": 1.12,
+    "dust_coverage": 0.31,
+    "temperature_c": -71.5
+  },
+  "faults": [
+    {
+      "component": "drive_motor",
+      "severity": "disabled",
+      "cause": "random",
+      "since_t": 150000.0,
+      "field_repairable": false
+    }
+  ],
+  "in_relay_coverage": true,
+  "telemetry_t": 260500.0
+}
