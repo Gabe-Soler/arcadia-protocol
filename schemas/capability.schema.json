@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/Gabe-Soler/arcadia-protocol/v1.0.0/schemas/capability.schema.json",
+  "$id": "https://raw.githubusercontent.com/Gabe-Soler/arcadia-protocol/v1.1.0/schemas/capability.schema.json",
   "title": "Capabilities, robot specs and site infrastructure",
   "description": "Robots are defined by what they can do, not by type. Each capability has a fixed work unit: scan m2, dig m3, grade m2, haul kg, compact m2, sinter m2, repair health-fraction, charge Wh, relay m (coverage radius, no rate). Also defines the fixed site infrastructure: charge stations, depots, the power system and the comms base station.",
   "$ref": "#/$defs/RobotSpec",

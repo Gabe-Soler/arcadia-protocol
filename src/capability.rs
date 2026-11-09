@@ -18,6 +18,9 @@ pub enum CapabilityName {
     Repair,
     Charge,
     Relay,
+    /// A capability from a later minor version, which this one cannot use.
+    #[serde(other)]
+    Unknown,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -76,6 +79,10 @@ pub enum PowerMode {
     SolarOnly,
     /// Mostly fission.
     NuclearHeavy,
+    /// A mode from a later minor version. The numbers in [`PowerSystem`]
+    /// still describe the grid.
+    #[serde(other)]
+    Unknown,
 }
 
 /// The site power grid. Supply is fission plus solar; demand is the essential

@@ -1,0 +1,7 @@
+{
+  "type": "comms",
+  "t": 138600.0,
+  "link": "down",
+  "cause": "relay_orbiter_safe_mode",
+  "one_way_delay_s": 842
+}

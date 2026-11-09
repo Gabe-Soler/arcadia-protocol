@@ -31,6 +31,9 @@ pub enum RobotStatus {
     Offline,
     /// Permanently gone (cannibalized); never commandable again.
     Lost,
+    /// A status from a later minor version that this one does not know.
+    #[serde(other)]
+    Unknown,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -61,6 +64,10 @@ pub struct RobotState {
     pub status: RobotStatus,
     pub battery_wh: f64,
     pub payload_kg: f64,
+    /// Energy left in a mobile charger's tank, exact. Present only for a
+    /// robot with the `charge` capability. Since 1.1.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub tank_wh: Option<f64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub current_command: Option<Id>,
     pub health: HealthTelemetry,

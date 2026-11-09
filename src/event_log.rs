@@ -55,6 +55,9 @@ pub enum LogEntry {
         reason: EndReason,
         metrics: RunMetrics,
     },
+    /// A record kind from a later minor version. A reader skips it.
+    #[serde(other)]
+    Unknown,
 }
 
 /// True state of the site power grid, sky and Earth link at a truth record's `t`.
@@ -88,6 +91,19 @@ pub struct RunMetrics {
     pub fleet: FleetMetrics,
     pub autonomy: AutonomyMetrics,
     pub conditions: ConditionMetrics,
+    /// Since 1.1: a simulator on 1.1 or later always writes it, and a 1.0
+    /// log has none.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub coverage: Option<CoverageMetrics>,
+}
+
+/// How often site coverage got in the way (since 1.1).
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct CoverageMetrics {
+    /// Commands rejected `out_of_coverage`.
+    pub out_of_coverage_rejections: u64,
+    /// Lost-link drives that robots started on their own.
+    pub lost_link_returns: u64,
 }
 
 /// The pad at the end of the run, against the goal's spec.
@@ -137,4 +153,8 @@ pub struct ConditionMetrics {
     pub storm_s: Duration,
     pub blackout_s: Duration,
     pub outage_s: Duration,
+    /// Time with the link down between pass windows. Since 1.1: a simulator
+    /// on 1.1 or later always writes it, and a 1.0 log has none.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub between_passes_s: Option<Duration>,
 }

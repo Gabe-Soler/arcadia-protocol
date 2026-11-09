@@ -1,0 +1,20 @@
+{
+  "robot_id": "hl-1",
+  "position": {
+    "x": 18,
+    "y": 22
+  },
+  "status": "idle",
+  "battery_wh": 9420.0,
+  "payload_kg": 0,
+  "tank_wh": -1.0,
+  "health": {
+    "wheel_slip": 0.03,
+    "motor_current_ratio": 1.04,
+    "dust_coverage": 0.08,
+    "temperature_c": -38.0
+  },
+  "faults": [],
+  "in_relay_coverage": true,
+  "telemetry_t": 41200
+}

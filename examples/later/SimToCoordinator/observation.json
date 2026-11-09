@@ -1,0 +1,124 @@
+{
+  "type": "observation",
+  "seq": 212,
+  "t": 251000.0,
+  "sol": 2,
+  "events": [
+    {
+      "type": "dust_devil",
+      "t": 250400.0,
+      "path": [
+        {
+          "x": 12,
+          "y": 40
+        },
+        {
+          "x": 19,
+          "y": 31
+        }
+      ]
+    },
+    {
+      "type": "comms",
+      "t": 250500.0,
+      "link": "down",
+      "cause": "relay_orbiter_safe_mode",
+      "one_way_delay_s": 842,
+      "relay": "orbiter-2"
+    },
+    {
+      "type": "command_rejected",
+      "t": 250900.0,
+      "command_id": "cmd-0412",
+      "robot_id": "cp-1",
+      "reason": "thermal_limit",
+      "retry_after_t": 262000.0
+    },
+    {
+      "type": "command_failed",
+      "t": 250950.0,
+      "command_id": "cmd-0398",
+      "robot_id": "ex-1",
+      "reason": "tool_jam",
+      "energy_used_wh": 310.5
+    },
+    {
+      "type": "robot_fault",
+      "t": 250950.0,
+      "robot_id": "ex-1",
+      "cause": "radiation",
+      "component": "avionics",
+      "severity": "intermittent",
+      "field_repairable": true
+    },
+    {
+      "type": "weather",
+      "t": 251000.0,
+      "condition": "frost",
+      "optical_depth": 0.4,
+      "temperature_c": -91.0,
+      "wind_m_s": 6.5
+    },
+    {
+      "type": "earth_message",
+      "t": 251000.0,
+      "sent_t": 250100.0,
+      "message": {
+        "type": "advisory",
+        "message_id": "earth-0031",
+        "text": "Relay orbiter in safe mode; expect fewer passes."
+      }
+    },
+    {
+      "type": "earth_message",
+      "t": 251000.0,
+      "sent_t": 250100.0,
+      "message": {
+        "type": "goal",
+        "message_id": "earth-0032",
+        "goal_id": "ice-well-1",
+        "priority": 5,
+        "objective": {
+          "kind": "ice_extraction",
+          "well": {
+            "x": 44,
+            "y": 40
+          },
+          "target_kg_per_sol": 50
+        }
+      }
+    }
+  ],
+  "robots": [
+    {
+      "robot_id": "ex-1",
+      "position": {
+        "x": 12,
+        "y": 9
+      },
+      "status": "hibernating",
+      "battery_wh": 3120.5,
+      "payload_kg": 180.0,
+      "health": {
+        "wheel_slip": 0.04,
+        "motor_current_ratio": 1.08,
+        "dust_coverage": 0.12,
+        "temperature_c": -42.5,
+        "vibration_g": 0.3
+      },
+      "faults": [
+        {
+          "component": "avionics",
+          "severity": "intermittent",
+          "cause": "radiation",
+          "since_t": 250950.0,
+          "field_repairable": true,
+          "recurrences": 3
+        }
+      ],
+      "in_relay_coverage": true,
+      "telemetry_t": 251000.0,
+      "tether_m": 12.5
+    }
+  ]
+}

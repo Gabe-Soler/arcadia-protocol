@@ -40,12 +40,21 @@ pub enum Uplink {
     PolicyUpdate {
         policy: Policy,
     },
+    /// A message type from a later minor version. A coordinator ignores it.
+    #[serde(other)]
+    Unknown,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum Objective {
-    LandingPad { pad: LandingPadSpec },
+    LandingPad {
+        pad: LandingPadSpec,
+    },
+    /// An objective from a later minor version: a goal this version cannot
+    /// pursue.
+    #[serde(other)]
+    Unknown,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -110,6 +119,10 @@ pub enum Downlink {
 pub enum Fallback {
     Proceed,
     Abort,
+    /// A fallback from a later minor version, as a policy may carry. A
+    /// coordinator never sends it.
+    #[serde(other)]
+    Unknown,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

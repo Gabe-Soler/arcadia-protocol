@@ -63,4 +63,7 @@ pub enum Surface {
     Stabilized,
     Berm,
     Stockpile,
+    /// A surface state from a later minor version.
+    #[serde(other)]
+    Unknown,
 }

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/Gabe-Soler/arcadia-protocol/v1.0.0/schemas/policy.schema.json",
+  "$id": "https://raw.githubusercontent.com/Gabe-Soler/arcadia-protocol/v1.1.0/schemas/policy.schema.json",
   "title": "Authority policy",
   "description": "Maps every coordinator action to an authority level. 1 autonomous: do it. 2 notify: do it, then report. 3 approve-if-reachable: ask first; if no answer by the deadline, apply the fallback. 4 hold for Earth: never done without an explicit approve. Earth can replace the policy at any time with a policy_update message.",
   "$ref": "#/$defs/Policy",

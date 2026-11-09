@@ -1,0 +1,22 @@
+{
+  "grade_window_m": 0.15,
+  "compaction_settlement_m": 0.01,
+  "min_work_duration_s": 5,
+  "rock_density_kg_m3": 2800,
+  "repair_work_degraded": 0.25,
+  "repair_work_disabled": 1.0,
+  "repair_work_stuck": 0.5,
+  "repair_work_per_wear_removed": 0.3,
+  "repair_wear_removed_fraction": 0.5,
+  "strip_work": 0.5,
+  "install_work": 1.0,
+  "tow_speed_factor": 0.5,
+  "tow_energy_factor": 2.0,
+  "depot_service_s": 7200,
+  "depot_capacity": 1,
+  "heater_threshold_c": -60,
+  "heater_power_factor": 1.0,
+  "relay_radio_w": 25,
+  "lost_link_timeout_s": 1800,
+  "earth_response_mean_s": 1200
+}

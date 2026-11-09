@@ -1,10 +1,12 @@
 # Interface semantics
 
-**Protocol version 1.0.0.** This document is normative.
+**Protocol version 1.1.0.** This document is normative.
 
-The [JSON Schemas](../schemas/) define what every message looks like. This document defines what the messages mean: what wakes the coordinator, what each command requires and does, which events it produces and how it can fail, and how faults, energy, comms, authority and the run metrics work. ArcadiaBench 1.0 implements every section. A coordinator can be written from this document and the schemas alone.
+The [JSON Schemas](../schemas/) define what every message looks like. This document defines what the messages mean: what wakes the coordinator, what each command requires and does, which events it produces and how it can fail, and how faults, energy, comms, authority and the run metrics work. ArcadiaBench is the reference implementation. A coordinator can be written from this document and the schemas alone.
 
-The structure here is fixed by the protocol; the numbers are not. Rates, probabilities, thresholds and durations are simulator parameters. ArcadiaBench chooses them and documents their values in its `docs/simulator.md`. Where a rule depends on one, this document says *a parameter*. The few that a coordinator has to assume to plan, because no message carries them, are listed with ArcadiaBench 1.0's values in the [appendix](#appendix-reference-constants).
+The structure here is fixed by the protocol; the numbers are not. Rates, probabilities, thresholds and durations are simulator parameters. ArcadiaBench chooses them and documents their values in its `docs/simulator.md`. Where a rule depends on one, this document says *a parameter*. The ones a coordinator needs to plan are carried in the scenario, and are written here as `constants.<name>`, short for `scenario.constants.<name>`. The [appendix](#appendix-scenario-constants) lists them, along with the few that no message carries.
+
+What 1.1 adds to 1.0 is marked *since 1.1*. [§1.6](#16-versions) says how versions work together.
 
 Free-text `detail` fields are for humans and are not part of the contract.
 
@@ -22,7 +24,7 @@ Free-text `detail` fields are for humans and are not part of the contract.
 10. [Event log](#10-event-log)
 11. [Run metrics](#11-run-metrics)
 
-Appendix: [reference constants](#appendix-reference-constants)
+Appendix: [scenario constants](#appendix-scenario-constants)
 
 ## 1. The loop
 
@@ -31,10 +33,10 @@ Appendix: [reference constants](#appendix-reference-constants)
 The simulator starts the coordinator as a subprocess and they exchange newline-delimited JSON on its stdin and stdout, one message per line. The coordinator's stderr is free for logs.
 
 1. The simulator sends `hello`: protocol version, simulator name and version, run id, seed and the scenario.
-2. The coordinator checks `protocol_version` before reading anything else. Two versions are compatible when MAJOR.MINOR match.
+2. The coordinator checks `protocol_version` before reading anything else (§1.6).
 3. The coordinator replies `welcome` with its own protocol version and name.
 
-If the versions are incompatible, either side sends `error` with code `version_mismatch` and the session stops. No observation is sent.
+If the versions are incompatible (§1.6), either side sends `error` with code `version_mismatch` and the session stops. No observation is sent.
 
 The scenario holds no goals. Goals arrive over the Earth link; the first arrives in the first observation as an `earth_message` event at `t = start_t` (§5).
 
@@ -107,12 +109,31 @@ When the run ends, the simulator sends `end` with the time and reason, then clos
 
 Events that have happened but were not yet delivered when the run ends are not sent to the coordinator; the event log records them (§10).
 
-Every message from the coordinator is checked against the schemas. Unknown fields are invalid, so a schema-invalid decision ends the run.
+Every message from the coordinator is checked against the simulator's schemas. Unknown fields are invalid, so a schema-invalid decision ends the run.
+
+### 1.6 Versions
+
+Each side announces the protocol version it implements: the simulator in `hello`, the coordinator in `welcome`.
+
+- **Compatibility.** Two versions are compatible when they have the same MAJOR and both are 1.1 or later. A version before 1.1 is compatible only with its own MAJOR.MINOR, so 1.0 works only with 1.0.
+- **A minor release only adds.** It may add optional fields, values to an enumeration, and types of event, Earth message, command and log record. It never removes or renames anything, never makes a field required, never changes what an existing field or value means, and never adds a message to the loop of §1.2. Nothing it adds needs an answer, so a coordinator that ignores all of it can still run a session.
+- **The simulator speaks its own version.** Everything it sends and logs is valid under its own version's schemas, whatever version the coordinator announces.
+- **The coordinator reads tolerantly.** In everything the simulator sends, it ignores a field it does not know, ignores an event or an Earth message whose `type` it does not know, and takes an enumeration value it does not know as *unknown*, never as an error. What an unknown value implies depends on where it stands:
+  - a reject or fail `reason`: the command was still rejected, or still failed;
+  - a robot `status`: a robot that cannot be counted on to take commands;
+  - a capability: one this coordinator cannot use, on a robot whose other capabilities still work;
+  - an objective: a goal this coordinator cannot pursue;
+  - a link `cause`: `link` still says whether the link is up.
+- **The coordinator sends only what the simulator's version defines.** The simulator rejects what it does not know (§1.5), so a coordinator on a later minor than the simulator holds back whatever was added after the version in `hello`.
+- **The schemas are strict and belong to one version.** They describe exactly what that version sends. A message is validated against the schemas of the version that produced it, never an earlier one.
+- **Logs** (§10) follow the same rule: a tool reading a log written by a later minor ignores the fields and record kinds it does not know.
+
+In the Rust crate, every enum a simulator sends has an `Unknown` variant that takes any value this version does not define, and `is_compatible` implements the rule above.
 
 ## 2. Time and environment
 
 - **Sim time** (`SimTime`) is seconds since mission start. The simulator keeps time in whole milliseconds, so every time it reports is a multiple of 0.001 s.
-- **A sol** is 88,775 s (`scenario.sol_length_s`). `t = 0` is local midnight. The sol phase is `(t mod sol) / sol`.
+- **A sol** is 88,775 s (`scenario.sol_length_s`). `t = 0` is local midnight. The sol phase is `(t mod sol) / sol`. A run starts at `scenario.start_t`, which need not be 0, so a run can start at any time of the sol.
 - **Daylight** is phase 0.25 (sunrise) up to 0.75 (sunset); noon is 0.5. Clear-sky solar output follows a half sine over daylight, peaking at noon, and is zero at night.
 - **Temperature** follows a daily cycle, coldest before dawn and warmest in mid-afternoon. ArcadiaBench documents its exact curve.
 - **Dust storms** come from a seeded schedule, at most one at a time. A storm's optical depth `tau` rises linearly from the clear-sky value to the storm's peak, then falls back linearly to clear at its end; how long the rise takes is set by the simulator. Solar output is scaled by a dust transmittance that falls as `tau` rises. A `weather` event is sent when a storm starts, peaks and ends, and at every sunrise while it lasts.
@@ -130,6 +151,7 @@ Each observation carries a `RobotState` per robot:
 | `status` | §3.2. |
 | `battery_wh` | Telemetry: the true value plus Gaussian noise (a parameter fraction of capacity), clamped to `[0, battery_capacity_wh]`. A robot with an empty battery can therefore read slightly above zero. |
 | `payload_kg` | Exact. Payload persists across commands. |
+| `tank_wh` | *Since 1.1.* For a robot with the `charge` capability, the energy left in its tank, exact (§7.4). Absent for every other robot. |
 | `current_command` | Id of the running command, if any. |
 | `health` | Noisy health telemetry (§6.3). |
 | `faults` | Active faults (§6.5). Empty when healthy. |
@@ -190,15 +212,17 @@ The simulator checks each command in this order. The first check that fails reje
 | 7 | The robot is not busy (§3.3). | `busy` |
 | 8 | The command's own checks (§4.3). | `missing_capability`, `invalid_target` |
 
-An accepted command produces `command_accepted` with `estimated_duration_s`: an estimate computed from the robot's advertised spec, ignoring noise, wear, faults, queueing and grid throttling. Drives are straight lines at `max_speed_m_s`, work runs at the capability `rate` (every work step but loading and dumping taking at least a minimum duration, a parameter), and charging runs at the nominal power. For a repair, the estimate counts only what the coordinator can see (the target's field-repairable faults, and whether it is stuck) and leaves out its hidden wear; stripping and installing parts use their fixed work content, a tow drives at the reduced towing speed, and service takes the service duration (§4.3). Comparing actual durations with estimates is one way to detect wear.
+An accepted command produces `command_accepted` with `estimated_duration_s`: an estimate computed from the robot's advertised spec, ignoring noise, wear, faults, queueing and grid throttling. Drives are straight lines at `max_speed_m_s`, work runs at the capability `rate` (every work step but loading and dumping taking at least `constants.min_work_duration_s`), and charging runs at the nominal power. For a repair, the estimate counts only what the coordinator can see (the target's field-repairable faults, and whether it is stuck) and leaves out its hidden wear; stripping and installing parts use their fixed work content, a tow drives at the reduced towing speed, and service takes the service duration (§4.3). Comparing actual durations with estimates is one way to detect wear.
 
 A command whose robot is unknown, or whose id is reused, is still reported with the `robot_id` it carried.
+
+**Other robots** (*since 1.1*). Some checks look at a robot other than the one commanded: the target of `repair`, `tow` or `cannibalize`, the beneficiary of `cannibalize`, and a mobile charger named as a `charge` source. While that robot is in coverage, they judge it by its true state. While it is out of coverage, they judge it as it was at last contact, the moment its snapshot dates from (§8.5): by the status, faults, command, engagement, wear and position it had then. The estimate is computed from that same state, and the drive toward that robot heads for the cell it was in then. So neither a rejection nor an estimate reveals what the coordinator has not seen. The robot's true state counts when the executor reaches it, and §4.3 gives the `target_lost` and `blocked` checks made on arrival. In 1.0 these checks read the true state even out of coverage.
 
 ### 4.2 Execution
 
 - A command is planned as steps: drives, then work, as listed for each command in §4.3. Steps run one after another; a step that has nothing to do is skipped.
 - **Drives** go in a straight line between cell centres. Distance is the Euclidean distance in cells times `cell_size_m`. A drive takes distance / `max_speed_m_s`, times multiplicative noise with mean 1 (a parameter), and costs distance × `drive_energy_wh_per_m` plus idle power. Wear and faults change these (§6.2).
-- **Work steps** take work units / capability `rate`, times noise with mean 1; every work step but loading and dumping takes at least a minimum duration (a parameter). They cost units × `energy_wh_per_unit` plus idle power.
+- **Work steps** take work units / capability `rate`, times noise with mean 1; every work step but loading and dumping takes at least `constants.min_work_duration_s`. They cost units × `energy_wh_per_unit` plus idle power.
 - **Area commands** (scan aside) work cell by cell in serpentine order: row by row from `area.min.y`, the first row west to east, alternating direction after that. For each cell the robot drives onto it, then works it. Work already done is kept if the command later fails or is cancelled.
 - **Preconditions are re-checked.** Each work step re-checks its cell's precondition when it starts. If it no longer holds, the command fails `blocked`.
 - **Ending.** When a command completes or fails, the robot becomes `idle`, or `offline` if its battery is empty. A failure during a drive leaves the robot at its interpolated cell.
@@ -225,20 +249,20 @@ Where a command needs a capability, a robot without it is rejected `missing_capa
 #### `dig {area, target_elevation_m, spoil_to?}`
 
 - **Requires:** the `dig` capability. A valid `area`, and `spoil_to` on the site if given, else `invalid_target`. Any surface state is accepted.
-- **Does:** for each cell, drives onto it and digs. Work units, in m³, are the height above target times the cell area, plus the volume of the cell's boulders.
+- **Does:** for each cell, drives onto it and digs. Work units, in m³, are the height above target times the cell area, plus the volume of the cell's boulders. A boulder is a sphere of rock of density `constants.rock_density_kg_m3`.
 - **Effect per cell:** removes the boulders; cuts the cell down to the target with a small noise (a parameter), never raising it; sets the surface to `cleared`, which undoes any later state. The spoil (cut mass plus boulder mass) goes into the payload up to the robot's `haul` capacity (zero without `haul`), and the rest is dumped (§4.4) at `spoil_to`, or by default at a nearby cell outside the pad, searched ring by ring outwards.
 - **Fails:** the usual.
 
 #### `grade {area, target_elevation_m}`
 
-- **Requires:** the `grade` capability and a valid `area`. Every cell must be not `natural`, boulder-free, and within the grade window (a parameter) of the target, else `invalid_target`. Each cell is checked again when its step starts (`blocked`).
+- **Requires:** the `grade` capability and a valid `area`. Every cell must be not `natural`, boulder-free, and within the grade window (`constants.grade_window_m`) of the target, else `invalid_target`. Each cell is checked again when its step starts (`blocked`).
 - **Effect per cell:** elevation becomes the target plus a small noise (a parameter); surface becomes `graded`. Grading moves no material between cells.
 - **Fails:** `blocked` and the usual.
 
 #### `compact {area}`
 
 - **Requires:** the `compact` capability and a valid `area`. Every cell must be `graded` or `compacted`, else `invalid_target`, and again when its step starts (`blocked`).
-- **Effect per cell:** the cell settles slightly (a parameter) and becomes `compacted`.
+- **Effect per cell:** the cell settles by about `constants.compaction_settlement_m`, with a small noise (a parameter), and becomes `compacted`.
 - **Fails:** `blocked` and the usual.
 
 #### `sinter {area}`
@@ -258,7 +282,7 @@ Where a command needs a capability, a robot without it is rejected `missing_capa
 
 - **Requires:** `source` is a `station_id`, or the `robot_id` of another robot with the `charge` capability, else `invalid_target`. An offline robot is accepted only if it is already at the source: on the station's cell, or within 1.5 cells of the mobile charger (the same or an adjacent cell, diagonals included). It does not drive.
 - **At a station:** drives to the station's cell, then takes a free slot or joins the station's first-come-first-served queue. Each slot delivers `max_power_w / slots`, scaled by the grid's delivered fraction (§7.2). The robot shows `charging` while queued, but keeps draining idle power until it gets a slot; an offline robot shows `offline` until energy flows.
-- **From a mobile charger:** drives to the charger's cell as of the start of the drive. On arrival the charger must be available, meaning idle and not busy, else `blocked`; and it must be within 1.5 cells, else `target_lost`. The charger then delivers its charge `rate` × 3600 W from its tank, and is engaged for the session; its own status stays `idle`.
+- **From a mobile charger:** drives to the charger's cell as of the start of the drive (its last-contact cell if it is out of coverage, §4.1). On arrival the charger must be available, meaning idle and not busy, else `blocked`; and it must be within 1.5 cells, else `target_lost`. The charger then delivers its charge `rate` × 3600 W from its tank, and is engaged for the session; its own status stays `idle`.
 - **Completes** when the battery reaches `until_wh` (capped at capacity), or is full. A robot with the `charge` capability that charges at a station without `until_wh` keeps charging after its battery is full, until its tank is full too. A session from a mobile charger also completes, early, when the charger's tank or battery runs out. A robot already at its target completes at once.
 - **Energy:** transfers are lossless; the charge capability's `energy_wh_per_unit` is not used.
 - **Fails:** `blocked`, `target_lost` and the usual. `insufficient_energy` also covers a battery that empties while queued.
@@ -266,7 +290,7 @@ Where a command needs a capability, a robot without it is rejected `missing_capa
 #### `relay {position}`
 
 - **Requires:** the `relay` capability. `position` on the site, else `invalid_target`.
-- **Does:** drives to `position`, then holds there with status `working` until cancelled; it never completes on its own. While holding it extends coverage (§8.4) and drains idle power plus a radio power (§7.5).
+- **Does:** drives to `position`, then holds there with status `working` until cancelled; it never completes on its own. While holding it extends coverage (§8.4) and drains idle power plus the radio's `constants.relay_radio_w` (§7.5).
 - **Fails:** the usual; `insufficient_energy` when the battery runs out while holding. Its estimate covers the drive only.
 
 #### `wait {duration_s}`
@@ -284,21 +308,22 @@ Where a command needs a capability, a robot without it is rejected `missing_capa
 #### `repair {target_robot}`
 
 - **Requires:** the `repair` capability, else `missing_capability`. `target_robot` must be another robot that is `idle`, `stuck`, `failed` or `offline`, has no running command, is not engaged, and has something to repair: it is stuck, has an active fault, or has wear. Otherwise `invalid_target`.
-- **Does:** drives to the target's cell as of the start of the drive. On arrival the target must be within 1.5 cells and not lost, else `target_lost`. If it no longer qualifies (it started a command, was engaged by another robot, or has nothing left to repair), the command fails `blocked`. The repairer then works on the target, which is engaged until the work ends. The work content is a health fraction that ArcadiaBench computes from the target's field-repairable faults, whether it is stuck, and its wear; the work takes that fraction divided by the repair `rate`, and costs it times `energy_wh_per_unit`, as for any work step.
-- **On completion:** clears the target's field-repairable faults, cuts its wear by a fraction (a parameter) and frees it if stuck. The target's status is then re-derived (§3.2): it is `idle` unless something disabling remains. Repairing a healthy but worn robot is legal; that is field preventive maintenance.
+- **Does:** drives to the target's cell as of the start of the drive (its last-contact cell if it is out of coverage, §4.1). On arrival the target must be within 1.5 cells and not lost, else `target_lost`. If it no longer qualifies (it started a command, was engaged by another robot, or has nothing left to repair), the command fails `blocked`. The repairer then works on the target, which is engaged until the work ends.
+- **Work content,** in the repair capability's unit, a health fraction: `constants.repair_work_degraded` for each degraded fault, plus `constants.repair_work_disabled` for each disabled fault that is field repairable, plus `constants.repair_work_stuck` if the target is stuck, plus `constants.repair_work_per_wear_removed` for each unit of wear the repair will remove (below). The work takes that content divided by the repair `rate`, and costs it times `energy_wh_per_unit`, as for any work step.
+- **On completion:** clears the target's field-repairable faults, removes the fraction `constants.repair_wear_removed_fraction` of each component's wear, and frees it if stuck. The target's status is then re-derived (§3.2): it is `idle` unless something disabling remains. Repairing a healthy but worn robot is legal; that is field preventive maintenance.
 - **Fails:** `target_lost`, `blocked` and the usual. A repair that does not complete leaves the target unchanged.
 
 #### `tow {target_robot, to}`
 
 - **Requires:** the `haul` capability, else `missing_capability`. `to` on the site, and `target_robot` another robot that is `failed`, `stuck` or `offline`, has no running command and is not engaged, else `invalid_target`. (A failed, stuck or offline robot can have a running command: `service` on a depot's cell, or `charge` at its source.)
-- **Does:** drives to the target as for repair, with the same `target_lost` check; if the target is no longer failed, stuck or offline, has started a command, or is engaged, the command fails `blocked`. Then both robots travel in a straight line to `to`, at a reduced fraction of the tower's speed and with a higher drive energy (both parameters), paid by the tower. Meanwhile the tower is `moving` and the target is `being_towed`.
+- **Does:** drives to the target as for repair, with the same `target_lost` check; if the target is no longer failed, stuck or offline, has started a command, or is engaged, the command fails `blocked`. Then both robots travel in a straight line to `to`, at `constants.tow_speed_factor` times the tower's speed and `constants.tow_energy_factor` times its drive energy, paid by the tower. Meanwhile the tower is `moving` and the target is `being_towed`.
 - **On completion:** both robots are at `to`. A stuck target is freed; a failed target stays failed and an offline one stays offline.
 - **Fails:** `target_lost`, `blocked` and the usual. If the tow stops early, both robots stop where they are and the target is no longer being towed.
 
 #### `cannibalize {target_robot, beneficiary_robot?}`
 
 - **Requires:** the `repair` capability, else `missing_capability`. `target_robot` must be another robot that is failed or offline, meaning it has an active disabled fault or an empty battery, whatever its status shows (a stuck robot can be both), and that is not lost, has no running command and is not engaged. `beneficiary_robot`, which defaults to the executor, must exist, must not be lost and must not be the target. Otherwise `invalid_target`.
-- **Does:** drives to the target as for repair (`target_lost`, or `blocked` if it no longer has a disabled fault or an empty battery, has started a command, or is engaged), then strips it. Stripping is a work step with a fixed work content (a parameter, in repair units): it takes that content divided by the executor's repair `rate`, costs it times `energy_wh_per_unit` like any work step, and engages the target. The target then becomes **`lost`**, permanently. Next the parts are installed in the beneficiary: in the executor straight away, or, for another robot, after driving to it. That beneficiary must then be within 1.5 cells and not lost, else `target_lost`, and must have no running command and not be engaged, else `blocked`. Installing is a work step of its own fixed work content (a parameter), done at the repair rate in the same way, with the beneficiary engaged.
+- **Does:** drives to the target as for repair (`target_lost`, or `blocked` if it no longer has a disabled fault or an empty battery, has started a command, or is engaged), then strips it. Stripping is a work step with a fixed work content (`constants.strip_work`, in repair units): it takes that content divided by the executor's repair `rate`, costs it times `energy_wh_per_unit` like any work step, and engages the target. The target then becomes **`lost`**, permanently. Next the parts are installed in the beneficiary: in the executor straight away, or, for another robot, after driving to it. That beneficiary must then be within 1.5 cells and not lost, else `target_lost`, and must have no running command and not be engaged, else `blocked`. Installing is a work step of its own fixed work content (`constants.install_work`), done at the repair rate in the same way, with the beneficiary engaged.
 - **On completion:** clears all of the beneficiary's faults, including ones that are not field repairable, and resets its wear to 0. It does not free a stuck robot.
 - **Fails:** `target_lost`, `blocked` and the usual. If the command fails after the strip, the target stays lost and its parts are wasted.
 - **Authority:** ArcadiaBench's default policy puts `cannibalize` at level 3 (§9), and its mission control moves it to level 4 once a robot has been lost (§8.3).
@@ -306,7 +331,7 @@ Where a command needs a capability, a robot without it is rejected `missing_capa
 #### `service {depot}`
 
 - **Requires:** `depot` is a `depot_id`, else `invalid_target`. Any commandable robot may be sent. A `failed`, `stuck` or `offline` robot is accepted only if it is already on the depot's cell, else `robot_disabled`; a robot that is being towed or lost is always rejected `robot_disabled`.
-- **Does:** drives to the depot's cell if not already there, waits if the depot is full, then is serviced for a parameter duration. How many robots a depot serves at once, and how the rest wait, are documented by ArcadiaBench. While waiting and while being serviced the robot draws no energy, and its status is `working` unless a disabling condition shows (§3.2).
+- **Does:** drives to the depot's cell if not already there, waits if the depot is full, then is serviced for `constants.depot_service_s`. A depot services `constants.depot_capacity` robots at once, and the rest wait their turn, first come, first served. While waiting and while being serviced the robot draws no energy, and its status is `working` unless a disabling condition shows (§3.2).
 - **On completion:** clears every fault, including ones that are not field repairable, resets all wear to 0, and frees a stuck robot. It does not charge the battery, so a robot with an empty battery is still `offline` afterwards.
 - **Fails:** `insufficient_energy`, `fault` and `stuck` during the drive; `cancelled` at any time.
 
@@ -389,7 +414,7 @@ Each failure process draws from its own seeded stream, so faults never change th
 Two environmental hazards are **conditions**, not faults. They emit no `robot_fault` and add no entry to `faults`:
 
 - **Getting stuck.** Driving through soft regolith can immobilize a robot; the chance rises with regolith depth and falls with cohesion, and compacted or stabilized ground is firm. The robot stops at its current cell, its status becomes `stuck`, and its command fails `stuck`. Getting stuck is a decision point even for a robot with no command, unless the robot is out of coverage (§8.5).
-- **Cold nights.** Below a temperature threshold, a heater draw is added to idle drain (§7.5), which can empty a battery and leave the robot `offline`.
+- **Cold nights.** While the ambient temperature is below `constants.heater_threshold_c`, a heater draw is added to idle drain (§7.5), which can empty a battery and leave the robot `offline`.
 
 ### 6.5 Severity and active faults
 
@@ -458,13 +483,13 @@ The simulator settles the grid at least at every power tick (an internal interva
 Station and mobile charging work as described for `charge` (§4.3):
 
 - A station has `slots` slots, each delivering `max_power_w / slots` times the delivered fraction, and a first-come-first-served queue.
-- A mobile charger's power is its charge `rate` × 3600 W, drawn from its tank (the charge capability's `capacity`). The tank starts full and is refilled only at stations.
+- A mobile charger's power is its charge `rate` × 3600 W, drawn from its tank (the charge capability's `capacity`). The tank starts full and is refilled only at stations. Its level is the charger's `tank_wh` (§3.1).
 
 ### 7.5 Robot drains
 
 - **Idle drain** of `idle_power_w`, as described in §3.4.
-- **Cold-night heater:** below a temperature threshold, a heater power is added to idle drain. Both are parameters.
-- **Relay radio:** a robot holding as a relay also draws a radio power (a parameter), on top of idle drain.
+- **Cold-night heater:** while the ambient temperature is below `constants.heater_threshold_c`, a heater adds `constants.heater_power_factor` × `idle_power_w` to idle drain.
+- **Relay radio:** a robot holding as a relay also draws `constants.relay_radio_w`, on top of idle drain.
 - Wear and degraded faults increase energy use (§6.1).
 
 ### 7.6 Power events and bank alerts
@@ -475,15 +500,19 @@ The event reports `solar_w` at its time, `fission_w`, `demand_w` (the essential 
 
 ## 8. Comms, coverage and Earth
 
-The coordinator runs at the site. Its link to Earth has a light-time delay and outages (§8.1–§8.3); its link to the robots is instant but needs coverage (§8.4–§8.5).
+The coordinator runs at the site. Its link to Earth has a light-time delay, pass windows and outages (§8.1–§8.3); its link to the robots is instant but needs coverage (§8.4–§8.5).
 
 ### 8.1 The Earth link
 
 - **Delay.** The one-way light-time delay `d(t)` varies smoothly with planetary geometry, between a minimum at opposition and a maximum at solar conjunction (both parameters). The scenario variant picks the epoch: in the conjunction variant the delay stays near its maximum; otherwise it starts at a parameter value and drifts gently.
+- **Pass windows** (*since 1.1*). A scenario may give the link a pass schedule: it is then up only during windows, such as a direct-to-Earth session or a relay orbiter's pass, and down in the gaps between them, with cause `between_passes`. The windows' times are parameters. A scenario without a schedule has a continuous link, as in 1.0.
 - **Conjunction blackout** (variant `conjunction`): the link goes down for weeks (the length is a parameter), starting at a seeded time inside the run. Cause `conjunction`.
 - **Unplanned outages:** Poisson arrivals, each lasting hours, from their own seeded stream. Cause `outage`. Outages never overlap, and none starts inside the conjunction blackout; one that runs into the blackout gives way to it, and the link stays down with cause `conjunction`.
 - The whole link schedule is generated from the seed at the start of the run.
-- **`comms` events** are sent at the start of the run, at every change of the link's state or cause (so also when an outage gives way to the blackout while the link stays down), and whenever `d(t)` has drifted by 60 s or more since the last `comms` event. Their `cause` is `nominal` while the link is up, and the reason for the outage while it is down. A link-down event carries `expected_restore_t` when the site could know it: for a conjunction blackout, not for an unplanned outage. Every `comms` event is a decision point.
+- **Up or down.** The link is up when it is inside a pass window (or has no pass schedule) and neither a conjunction blackout nor an unplanned outage holds it down. Its `cause` is `nominal` while it is up. While it is down, the cause is the first of these that holds: `conjunction`, `outage`, `between_passes`. So an outage that ends in a gap between passes leaves the link down, and its cause becomes `between_passes`.
+- **`comms` events** are sent at the start of the run, at every change of the link's state or cause (so also when an outage gives way to the blackout, or to a gap, while the link stays down), and whenever `d(t)` has drifted by 60 s or more since the last `comms` event. Every `comms` event is a decision point.
+- **`expected_restore_t`**, on an event with the link down, is when the link is next scheduled to come up: the first moment that is in a pass window, if there is a schedule, and outside the conjunction blackout. It is present whenever the site could know it, so for a blackout and for a gap between passes, and absent during an unplanned outage, whose end nobody knows. An unplanned outage can also delay a scheduled return.
+- **`window_end_t`** (*since 1.1*), on an event with the link up, is when the link is next scheduled to go down: the end of the current pass window, or the start of the conjunction blackout if that comes first. It is present only when the scenario has a pass schedule. An unplanned outage can take the link down sooner.
 
 ### 8.2 Message delivery
 
@@ -498,7 +527,7 @@ Messages are stored and forwarded in both directions. A message sent at time `t`
 
 Mission control is deterministic and draws from its own seeded stream.
 
-- **Approval requests.** It reads each `approval_request` when it arrives at Earth and answers once, after a human response time drawn from a lognormal distribution (its mean is a parameter). It sends `approve` with a probability that depends on the action (parameters), otherwise `veto`. A request for `commit_energy_reserve` is judged on the site's true storage at the time the request was sent: it can be approved only if storage was low then. Mission control replies even when the reply will arrive after `decide_by_t`. A request that cannot reach Earth before the time limit is never read, and one that repeats an earlier approval request's `message_id` is never answered (§9.2).
+- **Approval requests.** It reads each `approval_request` when it arrives at Earth and answers once, after a human response time drawn from a lognormal distribution with mean `constants.earth_response_mean_s`. Like any message, the answer then waits for the link to be up (§8.2). It sends `approve` with a probability that depends on the action (parameters), otherwise `veto`. A request for `commit_energy_reserve` is judged on the site's true storage at the time the request was sent: it can be approved only if storage was low then. Mission control replies even when the reply will arrive after `decide_by_t`. A request that cannot reach Earth before the time limit is never read, and one that repeats an earlier approval request's `message_id` is never answered (§9.2).
 - **Policy updates** follow a deterministic trust script of two rules, each firing at most once a run:
   - After a parameter number of sols without an incident, it moves some level-2 actions to level 1. An incident is a new fault, a robot getting stuck or a robot lost; the clock starts with the run and restarts at each incident.
   - After a robot is lost, it moves `cannibalize` to level 4.
@@ -520,8 +549,8 @@ Mission control is deterministic and draws from its own seeded stream.
 - **No decision points.** Until it comes back, nothing the robot does is a decision point: a held event wakes nobody, and neither does its battery running out or it getting stuck with no command. Its return is a decision point, even with nothing held back. Losing coverage is not a decision point.
 - **Snapshot.** In observations its snapshot is its state at the moment it lost contact, with telemetry noise drawn at that moment, `in_relay_coverage: false` and `telemetry_t` set to that moment. The event log's `truth` records always show its true state and coverage.
 - **Every robot.** Coverage applies to lost robots too: a lost robot out of coverage shows its last-contact snapshot, and anything it held back is delivered once coverage reaches its cell.
-- **Lost-link behaviour.** A robot whose status is `idle`, that has no command, is not engaged by another robot (§3.3), and has been out of coverage for at least `lost_link_timeout_s` (a parameter) drives in a straight line toward the base station. The time counts from when it lost contact, so a robot that finishes a long command out of coverage may set off at once. It drives as far as the first cell on the way that is in coverage and stops there, or sooner if coverage comes back. Meanwhile its status is `moving` with no `current_command`, and it produces no command events. The drive costs energy and exposes the robot to wear, faults and getting stuck like any other. If it ends out of coverage after all, because the coverage it was heading for has gone, the robot sets off again at once.
-- **Known limitation.** Acceptance checks that look at another robot (the target of `repair`, `tow` or `cannibalize`, and the beneficiary of `cannibalize`) read that robot's true state, even when it is out of coverage. A rejection can therefore reveal a state the coordinator has not seen.
+- **Lost-link behaviour.** A robot whose status is `idle`, that has no command, is not engaged by another robot (§3.3), and has been out of coverage for at least `constants.lost_link_timeout_s` drives in a straight line toward the base station. The time counts from when it lost contact, so a robot that finishes a long command out of coverage may set off at once. It drives as far as the first cell on the way that is in coverage and stops there, or sooner if coverage comes back. Meanwhile its status is `moving` with no `current_command`, and it produces no command events. The drive costs energy and exposes the robot to wear, faults and getting stuck like any other. If it ends out of coverage after all, because the coverage it was heading for has gone, the robot sets off again at once.
+- **As another robot's target** (*since 1.1*). A command that names a robot out of coverage as its target, beneficiary or charger is checked, estimated and aimed using that robot's last-contact state, not its true state (§4.1). What the executor finds on arrival is the truth, and it reports that itself.
 
 ### 8.6 Log ordering
 
@@ -584,7 +613,7 @@ Records never go backwards in `t` (§8.6).
 
 ## 11. Run metrics
 
-`run_end.metrics` summarizes the run from ground truth. Every field is required. "The run" means the interval from `start_t` to the end time.
+`run_end.metrics` summarizes the run from ground truth. A simulator writes every field. The schema requires all but the ones added in 1.1 (`conditions.between_passes_s` and the `coverage` group), which a log written by a 1.0 simulator does not have. "The run" means the interval from `start_t` to the end time.
 
 | Field | Definition |
 |---|---|
@@ -618,28 +647,51 @@ Records never go backwards in `t` (§8.6).
 | `policy_violations` | Level-2 commands without a timely `notify` (§9.2). |
 | **`conditions`** | |
 | `storm_s` | Time during the run with a dust storm active. |
-| `blackout_s` | Time during the run with the link down for a conjunction. |
-| `outage_s` | Time during the run with the link down for an unplanned outage. |
+| `blackout_s` | Time during the run with the link down and cause `conjunction` (§8.1). |
+| `outage_s` | Time during the run with the link down and cause `outage`. |
+| `between_passes_s` | *Since 1.1.* Time during the run with the link down and cause `between_passes`; 0 when the scenario has no pass schedule. With the two above it adds up to all the time the link was down. |
+| **`coverage`** | *Since 1.1.* |
+| `out_of_coverage_rejections` | `command_rejected` events with reason `out_of_coverage` (§8.5). |
+| `lost_link_returns` | Lost-link drives started (§8.5), counting one each time a robot sets off. |
 
-## Appendix: reference constants
+## Appendix: scenario constants
 
-Some simulator constants matter to a coordinator's plans, but no message carries them, so a coordinator has to assume them. These are ArcadiaBench 1.0's values on its Standard track, the same in every preset and variant. They describe ArcadiaBench rather than the protocol: another simulator may choose other values, and a future minor version of the protocol may carry them in the scenario. ArcadiaBench's `docs/simulator.md` documents every parameter, including its models of wear, failures and health telemetry.
+*Since 1.1.* `scenario.constants` carries the simulator constants that a coordinator needs to plan. A simulator on 1.1 or later always sends it, with every field below; the schema leaves it optional only so that a 1.0 scenario stays valid.
 
-| Constant | ArcadiaBench 1.0 | Why a coordinator needs it |
+A 1.0 scenario has none, so a 1.0 coordinator had to assume them. The last column gives the values ArcadiaBench 1.0 used on its Standard track, in every preset and variant. They describe that simulator, not the protocol: other simulators, and later ArcadiaBench catalogs, send their own. ArcadiaBench's `docs/simulator.md` documents every parameter, including its models of wear, failures and health telemetry.
+
+| Field | Meaning | ArcadiaBench 1.0 |
 |---|---|---|
-| Grade window | 0.15 m | `grade` only levels a cell within this distance of its target (§4.3). A cell further off must be dug or filled first; otherwise the command is rejected `invalid_target`. |
-| Compaction settlement | 0.01 m (standard deviation 0.002 m) | `compact` lowers each cell by about this much (§4.3), so grading should allow for it within the pad's tolerance. |
-| Minimum work duration | 5 s | The shortest any work step but loading and dumping can take (§4.2). |
-| Rock density | 2,800 kg/m³ | Dig spoil includes the cell's boulders at this density (§4.3); scans report only their diameters. |
-| Repair work | 0.25 units per degraded fault, 1.0 per disabled field-repairable fault, 0.5 if stuck, plus 0.15 per unit of summed component wear; a repair removes half of each component's wear | A repair's duration and energy (§4.3). Its estimate leaves out the wear term. |
-| Strip and install work | 0.5 and 1.0 units | A `cannibalize`'s duration and energy (§4.3). |
-| Towing | half the tower's speed, twice its drive energy | A tow's duration and the energy the tower needs (§4.3). |
-| Depot service | 7,200 s, one robot at a time per depot; the others wait, first come, first served | Planning and queueing for service (§4.3). |
-| Cold-night heater | an extra 1.0 × idle power while ambient is below −60 °C: about 9.7 h a sol, from sol phase 0.929 to 0.321 | Idle drain at night (§3.4, §7.5). |
-| Relay radio | 25 W on top of idle drain while holding | The cost of holding a relay (§7.5). |
-| Lost-link timeout | 1,800 s | When a stranded idle robot starts back on its own (§8.5). |
-| Mission control | response time lognormal with a mean of 1,200 s (log-sd 0.5); approval probability 0.9, but 0.75 for `cannibalize`, 0.6 for `abandon_section`, and for `commit_energy_reserve` 0.9 only if storage was at most 25% of capacity, else 0 | Choosing `decide_by_t` and weighing the level-3 fallback (§8.3, §9.2). |
+| `grade_window_m` | `grade` only levels a cell within this distance of its target (§4.3). A cell further off must be dug or filled first; otherwise the command is rejected `invalid_target`. | 0.15 m |
+| `compaction_settlement_m` | `compact` lowers each cell by about this much (§4.3), so grading should allow for it within the pad's tolerance. | 0.01 m |
+| `min_work_duration_s` | The shortest any work step but loading and dumping can take (§4.2). | 5 s |
+| `rock_density_kg_m3` | Dig work and spoil count a cell's boulders as spheres of this density (§4.3); scans report only their diameters. | 2,800 kg/m³ |
+| `repair_work_degraded` | Repair work per degraded fault (§4.3). | 0.25 |
+| `repair_work_disabled` | Repair work per disabled fault that is field repairable. | 1.0 |
+| `repair_work_stuck` | Repair work to free a stuck robot. | 0.5 |
+| `repair_work_per_wear_removed` | Repair work per unit of wear the repair removes. A repair's estimate leaves this term out, because wear is hidden. | 0.3 |
+| `repair_wear_removed_fraction` | The fraction of each component's wear a repair removes. | 0.5 |
+| `strip_work` | Work to strip a robot for parts, the first half of a `cannibalize` (§4.3). | 0.5 |
+| `install_work` | Work to install the parts, the second half. | 1.0 |
+| `tow_speed_factor` | A tow's speed as a fraction of the tower's `max_speed_m_s` (§4.3). | 0.5 |
+| `tow_energy_factor` | A tow's drive energy as a multiple of the tower's `drive_energy_wh_per_m`. | 2.0 |
+| `depot_service_s` | How long a `service` takes once it starts (§4.3). | 7,200 s |
+| `depot_capacity` | Robots a depot services at once. The rest wait, first come, first served. | 1 |
+| `heater_threshold_c` | Robot heaters run while the ambient temperature is below this (§6.4, §7.5). | −60 °C |
+| `heater_power_factor` | The heater's draw as a multiple of the robot's `idle_power_w`, added to idle drain. | 1.0 |
+| `relay_radio_w` | What a robot holding as a relay draws on top of idle drain (§7.5). | 25 W |
+| `lost_link_timeout_s` | How long an idle robot stays out of coverage before it starts back on its own (§8.5). | 1,800 s |
+| `earth_response_mean_s` | Mission control's mean time to answer an approval request once it arrives at Earth (§8.3). For choosing `decide_by_t` and weighing the level-3 fallback (§9.2). | 1,200 s |
+
+Repair, strip and install work is counted in the repair capability's unit (a health fraction), and is done at the executor's repair `rate` like any work step (§4.2).
+
+### Constants no message carries
+
+A coordinator still has to assume these, or learn them as it goes. The values are ArcadiaBench 1.0's.
+
+| Constant | ArcadiaBench 1.0 | Why a coordinator might want it |
+|---|---|---|
+| When heaters run | Ambient is below −60 °C for about 9.7 h a sol, from sol phase 0.929 to 0.321 | Idle drain at night (§3.4, §7.5). The ambient temperature is in every `weather` event, and a robot's `health.temperature_c` follows it. |
+| How mission control decides | Response time lognormal, with log-sd 0.5 around its mean. Approval probability 0.9, but 0.75 for `cannibalize`, 0.6 for `abandon_section`, and for `commit_energy_reserve` 0.9 only if storage was at most 25% of capacity, else 0. | Weighing the level-3 fallback (§8.3, §9.2). |
 | Decision timeout | 10 s of wall-clock time per reply, by default | A later reply ends the run `coordinator_error` (§1.5). |
 | Observations at one time | 1,000 | Any more in a row at the same `t` end the run `coordinator_error` (§1.5). |
-
-Repair, strip and install work is counted in the repair capability's unit (health fraction), and is done at the executor's repair `rate` like any work step (§4.2).
