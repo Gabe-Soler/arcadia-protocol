@@ -40,7 +40,12 @@
     "conditions": {
       "storm_s": 512000.0,
       "blackout_s": 0,
-      "outage_s": 14400.0
+      "outage_s": 14400.0,
+      "between_passes_s": 2310000.0
+    },
+    "coverage": {
+      "out_of_coverage_rejections": 2,
+      "lost_link_returns": 1
     }
   }
 }

@@ -6,6 +6,10 @@
 //!   3. re-serializing gives the same JSON (numerically) and still validates.
 //!
 //! For every `examples/invalid/<Def>/*.json`: the schema rejects it.
+//!
+//! For every `examples/later/<Def>/*.json`, a message as a simulator on a
+//! later minor version might send it: this version's strict schema rejects
+//! it, and the Rust type still reads it (`docs/semantics.md` §1.6).
 
 use arcadia_protocol::schemas::ALL;
 use arcadia_protocol::validate::validator;
@@ -75,6 +79,7 @@ const DEFS: &[(&str, &str, RoundTrip)] = &[
         "messages.schema.json",
         round_trip::<CoordinatorToSim>,
     ),
+    ("Constants", "messages.schema.json", round_trip::<Constants>),
     (
         "LogRecord",
         "event_log.schema.json",
@@ -164,7 +169,7 @@ fn every_schema_file_is_embedded() {
 
 #[test]
 fn every_fixture_dir_is_covered() {
-    for kind in ["valid", "invalid"] {
+    for kind in ["valid", "invalid", "later"] {
         for entry in fs::read_dir(examples().join(kind)).unwrap() {
             let name = entry.unwrap().file_name().to_string_lossy().into_owned();
             assert!(
@@ -220,6 +225,173 @@ fn invalid_fixtures_are_rejected() {
         }
     }
     assert!(accepted.is_empty(), "schema accepted: {accepted:?}");
+}
+
+/// A minor release only adds, so what 1.0 sent is still valid: a 1.0 `hello`
+/// has no `constants`, and 1.0 run metrics have no `coverage`.
+#[test]
+fn messages_from_1_0_stay_valid() {
+    let hello = fixtures("valid", "SimToCoordinator")
+        .into_iter()
+        .find(|(name, _)| name.ends_with("/hello_1_0.json"))
+        .expect("the 1.0 hello fixture")
+        .1;
+    assert_eq!(hello["protocol_version"], "1.0.0");
+    let SimToCoordinator::Hello(hello) = serde_json::from_value(hello).unwrap() else {
+        panic!("not a hello");
+    };
+    assert_eq!(hello.scenario.constants, None);
+
+    let metrics = fixtures("valid", "RunMetrics")
+        .into_iter()
+        .find(|(name, _)| name.ends_with("/time_limit.json"))
+        .expect("the 1.0 run metrics fixture")
+        .1;
+    let metrics: RunMetrics = serde_json::from_value(metrics).unwrap();
+    assert_eq!(metrics.coverage, None);
+    assert_eq!(metrics.conditions.between_passes_s, None);
+}
+
+/// Messages from a later minor version are not valid under this version's
+/// strict schemas, but the Rust types read them: unknown fields are ignored.
+#[test]
+fn later_minor_fixtures_are_rejected_by_the_schema_and_read_by_the_types() {
+    let mut failures = Vec::new();
+    let mut seen = 0;
+    for (def, file, rt) in DEFS {
+        let v = validator(file, def).unwrap();
+        for (name, json) in fixtures("later", def) {
+            seen += 1;
+            if v.is_valid(&json) {
+                failures.push(format!(
+                    "{name}: valid under this version, so it tests nothing"
+                ));
+            }
+            if let Err(e) = rt(&json) {
+                failures.push(format!("{name}: Rust type rejected it: {e}"));
+            }
+        }
+    }
+    assert!(seen > 0, "no later-minor fixtures");
+    assert!(failures.is_empty(), "\n{}", failures.join("\n"));
+}
+
+/// What a later minor version adds to an enum reads as that enum's `Unknown`.
+#[test]
+fn later_minor_values_read_as_unknown() {
+    let later = |file: &str| -> SimToCoordinator {
+        let (_, json) = fixtures("later", "SimToCoordinator")
+            .into_iter()
+            .find(|(name, _)| name.ends_with(file))
+            .unwrap_or_else(|| panic!("no fixture {file}"));
+        serde_json::from_value(json).unwrap()
+    };
+
+    let SimToCoordinator::Hello(hello) = later("/hello.json") else {
+        panic!("not a hello");
+    };
+    assert!(is_compatible(&hello.protocol_version, PROTOCOL_VERSION));
+    let scenario = &hello.scenario;
+    assert_eq!(scenario.power.mode, PowerMode::Unknown);
+    assert_eq!(scenario.power.solar_peak_w, 100_000.0);
+    assert_eq!(scenario.policy.level3.default_fallback, Fallback::Unknown);
+    assert_eq!(scenario.site.cells[0].cell.surface, Some(Surface::Unknown));
+    let driller = &scenario.robots[0];
+    assert_eq!(driller.capabilities[0].name, CapabilityName::Unknown);
+    assert!(driller.capability(CapabilityName::Haul).is_some());
+    let constants = scenario.constants.as_ref().expect("constants");
+    assert_eq!(constants.earth_response_mean_s, 14_400.0);
+
+    let SimToCoordinator::Observation(obs) = later("/observation.json") else {
+        panic!("not an observation");
+    };
+    let kinds: Vec<&EventKind> = obs.events.iter().map(|e| &e.kind).collect();
+    assert_eq!(kinds.len(), 8);
+    assert_eq!(*kinds[0], EventKind::Unknown);
+    assert_eq!(obs.events[0].t, 250_400.0);
+    assert!(matches!(
+        kinds[1],
+        EventKind::Comms {
+            link: Link::Down,
+            cause: CommsCause::Unknown,
+            expected_restore_t: None,
+            window_end_t: None,
+            ..
+        }
+    ));
+    assert!(matches!(
+        kinds[2],
+        EventKind::CommandRejected {
+            reason: RejectReason::Unknown,
+            ..
+        }
+    ));
+    assert!(matches!(
+        kinds[3],
+        EventKind::CommandFailed {
+            reason: FailReason::Unknown,
+            ..
+        }
+    ));
+    assert!(matches!(
+        kinds[4],
+        EventKind::RobotFault {
+            cause: FaultCause::Unknown,
+            severity: Severity::Unknown,
+            ..
+        }
+    ));
+    assert!(matches!(
+        kinds[5],
+        EventKind::Weather {
+            condition: WeatherCondition::Unknown,
+            ..
+        }
+    ));
+    let EventKind::EarthMessage { message, .. } = kinds[6] else {
+        panic!("not an earth_message");
+    };
+    assert_eq!(message.message_id, "earth-0031");
+    assert_eq!(message.body, Uplink::Unknown);
+    let EventKind::EarthMessage { message, .. } = kinds[7] else {
+        panic!("not an earth_message");
+    };
+    assert!(matches!(
+        &message.body,
+        Uplink::Goal {
+            objective: Objective::Unknown,
+            priority: 5,
+            ..
+        }
+    ));
+    let robot = &obs.robots[0];
+    assert_eq!(robot.status, RobotStatus::Unknown);
+    assert_eq!(robot.faults[0].severity, Severity::Unknown);
+    assert_eq!(robot.tank_wh, None);
+
+    let SimToCoordinator::End(end) = later("/end.json") else {
+        panic!("not an end");
+    };
+    assert_eq!(end.reason, EndReason::Unknown);
+
+    let (_, record) = fixtures("later", "LogRecord").remove(0);
+    let record: LogRecord = serde_json::from_value(record).unwrap();
+    assert_eq!(record.t, 251_000.0);
+    assert_eq!(record.entry, LogEntry::Unknown);
+}
+
+/// The enums a coordinator sends stay closed: a simulator rejects a command
+/// or a message to Earth of a type it does not know.
+#[test]
+fn what_a_coordinator_sends_has_no_unknown() {
+    let command = serde_json::json!({
+        "type": "drill", "command_id": "cmd-1", "robot_id": "dr-1", "depth_m": 2.0
+    });
+    assert!(serde_json::from_value::<Command>(command).is_err());
+    let downlink = serde_json::json!({
+        "type": "request_resupply", "message_id": "site-1", "summary": "Send parts."
+    });
+    assert!(serde_json::from_value::<SiteToEarth>(downlink).is_err());
 }
 
 /// `Action::name()` doubles as the policy action name, so it must equal the

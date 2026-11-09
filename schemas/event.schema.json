@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/Gabe-Soler/arcadia-protocol/v1.0.0/schemas/event.schema.json",
+  "$id": "https://raw.githubusercontent.com/Gabe-Soler/arcadia-protocol/v1.1.0/schemas/event.schema.json",
   "title": "Simulation event",
   "description": "Simulator -> coordinator: what the site observed since the last observation. Every event carries the sim time `t` at which it happened.",
   "$ref": "#/$defs/Event",
@@ -332,6 +332,11 @@
           "$ref": "common.schema.json#/$defs/Duration"
         },
         "expected_restore_t": {
+          "description": "While the link is down: when it is next scheduled to come up. Absent when nobody can know, as in an unplanned outage.",
+          "$ref": "common.schema.json#/$defs/SimTime"
+        },
+        "window_end_t": {
+          "description": "Since 1.1. While the link is up in a pass window: when it is next scheduled to go down. An unplanned outage can take it down sooner.",
           "$ref": "common.schema.json#/$defs/SimTime"
         }
       },
@@ -428,11 +433,12 @@
       ]
     },
     "CommsCause": {
-      "description": "nominal: the link is in its normal state. conjunction: solar conjunction blackout. outage: unplanned outage.",
+      "description": "nominal: the link is up. While it is down, the first of these that holds: conjunction: solar conjunction blackout. outage: unplanned outage. between_passes: the gap between two pass windows (since 1.1).",
       "enum": [
         "nominal",
         "conjunction",
-        "outage"
+        "outage",
+        "between_passes"
       ]
     }
   }

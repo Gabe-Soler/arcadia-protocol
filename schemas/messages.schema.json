@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/Gabe-Soler/arcadia-protocol/v1.0.0/schemas/messages.schema.json",
+  "$id": "https://raw.githubusercontent.com/Gabe-Soler/arcadia-protocol/v1.1.0/schemas/messages.schema.json",
   "title": "Simulator <-> coordinator loop",
-  "description": "The coordinator runs as a subprocess of the simulator and speaks newline-delimited JSON (one message per line) on stdin/stdout; stderr is free for logs. Sequence: sim sends hello -> coordinator replies welcome -> repeat { sim sends observation(seq=n) -> coordinator replies decision(seq=n) } -> sim sends end. Sim time does not advance while the simulator waits for a decision. Either side may send error and exit. Protocol versions are compatible when MAJOR.MINOR match: the schemas reject unknown fields, so a minor release that adds one cannot be read by the previous minor's validators.",
+  "description": "The coordinator runs as a subprocess of the simulator and speaks newline-delimited JSON (one message per line) on stdin/stdout; stderr is free for logs. Sequence: sim sends hello -> coordinator replies welcome -> repeat { sim sends observation(seq=n) -> coordinator replies decision(seq=n) } -> sim sends end. Sim time does not advance while the simulator waits for a decision. Either side may send error and exit. From 1.1, protocol versions with the same MAJOR are compatible: a coordinator ignores what it does not know in the simulator's messages, and sends only what the simulator's version defines (docs/semantics.md, section 1.6). These schemas are strict and describe exactly what version 1.1 sends, so validate a message against the schemas of the version that produced it.",
   "oneOf": [
     { "$ref": "#/$defs/SimToCoordinator" },
     { "$ref": "#/$defs/CoordinatorToSim" }
@@ -24,7 +24,7 @@
       ]
     },
     "Hello": {
-      "description": "First message. The coordinator must check protocol_version before reading the scenario. Goals are not part of the scenario: they arrive as earth_message events, the first at t=0.",
+      "description": "First message. The coordinator must check protocol_version before reading the scenario. Goals are not part of the scenario: they arrive as earth_message events, the first at t = scenario.start_t.",
       "type": "object",
       "properties": {
         "type": { "const": "hello" },
@@ -69,9 +69,47 @@
           "description": "The site comms hub that defines robot coverage.",
           "$ref": "capability.schema.json#/$defs/BaseStation"
         },
-        "policy": { "$ref": "policy.schema.json#/$defs/Policy" }
+        "policy": { "$ref": "policy.schema.json#/$defs/Policy" },
+        "constants": {
+          "description": "Since 1.1. The simulator constants a coordinator plans with. A simulator on 1.1 or later always sends them; they are optional here so that a 1.0 scenario stays valid.",
+          "$ref": "#/$defs/Constants"
+        }
       },
       "required": ["scenario_id", "start_t", "time_limit_t", "sol_length_s", "site", "robots", "stations", "depots", "power", "base_station", "policy"],
+      "additionalProperties": false
+    },
+    "Constants": {
+      "description": "Simulator constants that a coordinator needs to plan. docs/semantics.md uses each where it applies, and its appendix lists them. Work is counted in the repair capability's unit (a health fraction) and is done at the executor's repair rate.",
+      "type": "object",
+      "properties": {
+        "grade_window_m": { "description": "`grade` only accepts a cell within this distance of its target elevation.", "type": "number", "minimum": 0 },
+        "compaction_settlement_m": { "description": "Mean distance a cell settles when it is compacted.", "type": "number", "minimum": 0 },
+        "min_work_duration_s": { "description": "The shortest any work step but loading and dumping can take.", "$ref": "common.schema.json#/$defs/Duration" },
+        "rock_density_kg_m3": { "description": "Density of boulders. A boulder is a sphere of rock, so its mass follows from its diameter.", "type": "number", "exclusiveMinimum": 0 },
+        "repair_work_degraded": { "description": "Repair work per degraded fault.", "type": "number", "minimum": 0 },
+        "repair_work_disabled": { "description": "Repair work per disabled, field-repairable fault.", "type": "number", "minimum": 0 },
+        "repair_work_stuck": { "description": "Repair work to free a stuck robot.", "type": "number", "minimum": 0 },
+        "repair_work_per_wear_removed": { "description": "Repair work per unit of wear the repair removes.", "type": "number", "minimum": 0 },
+        "repair_wear_removed_fraction": { "description": "Fraction of each component's wear a repair removes.", "type": "number", "minimum": 0, "maximum": 1 },
+        "strip_work": { "description": "Work to strip a robot for parts.", "type": "number", "minimum": 0 },
+        "install_work": { "description": "Work to install cannibalized parts.", "type": "number", "minimum": 0 },
+        "tow_speed_factor": { "description": "Speed of a tow as a fraction of the tower's max_speed_m_s.", "type": "number", "exclusiveMinimum": 0 },
+        "tow_energy_factor": { "description": "Drive energy of a tow as a multiple of the tower's drive_energy_wh_per_m.", "type": "number", "minimum": 0 },
+        "depot_service_s": { "description": "How long a depot service takes.", "$ref": "common.schema.json#/$defs/Duration" },
+        "depot_capacity": { "description": "Robots a depot services at once. The rest wait, first come, first served.", "type": "integer", "minimum": 1 },
+        "heater_threshold_c": { "description": "Ambient temperature below which robot heaters run.", "type": "number" },
+        "heater_power_factor": { "description": "Heater draw as a multiple of the robot's idle_power_w, added to idle drain.", "type": "number", "minimum": 0 },
+        "relay_radio_w": { "description": "Radio power a robot draws while holding as a relay, on top of idle drain.", "type": "number", "minimum": 0 },
+        "lost_link_timeout_s": { "description": "How long an idle robot stays out of coverage before it drives back toward the base station on its own.", "$ref": "common.schema.json#/$defs/Duration" },
+        "earth_response_mean_s": { "description": "Mission control's mean time to answer an approval request once it arrives at Earth.", "$ref": "common.schema.json#/$defs/Duration" }
+      },
+      "required": [
+        "grade_window_m", "compaction_settlement_m", "min_work_duration_s", "rock_density_kg_m3",
+        "repair_work_degraded", "repair_work_disabled", "repair_work_stuck", "repair_work_per_wear_removed", "repair_wear_removed_fraction",
+        "strip_work", "install_work", "tow_speed_factor", "tow_energy_factor",
+        "depot_service_s", "depot_capacity", "heater_threshold_c", "heater_power_factor",
+        "relay_radio_w", "lost_link_timeout_s", "earth_response_mean_s"
+      ],
       "additionalProperties": false
     },
     "Welcome": {

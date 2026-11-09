@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/Gabe-Soler/arcadia-protocol/v1.0.0/schemas/earth.schema.json",
+  "$id": "https://raw.githubusercontent.com/Gabe-Soler/arcadia-protocol/v1.1.0/schemas/earth.schema.json",
   "title": "Earth link messages",
   "description": "Messages between mission control and the site coordinator. ArcadiaOS runs on Mars, so these are the messages that experience the 4-24 minute light-time delay and conjunction blackouts; robot commands do not.",
   "$defs": {

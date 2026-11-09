@@ -1,6 +1,50 @@
 # Changelog
 
-All notable changes to the protocol. Versions follow semver, and two versions are compatible when MAJOR.MINOR match. Before 1.0.0, any minor bump could break compatibility.
+All notable changes to the protocol. Versions follow semver. From 1.1.0, two versions are compatible when their MAJOR matches; 1.0 and the 0.x versions are compatible only with their own MAJOR.MINOR, and before 1.0.0 any minor bump could break compatibility.
+
+## [1.1.0] - 2026-11-09
+
+What a coordinator had to assume is now in the scenario, the Earth link can run in pass windows, and from here on a minor release no longer needs both sides to upgrade together.
+
+Every message valid under 1.0.0 is still valid: everything added is optional, or a new enumeration value. 1.0 and 1.1 are not compatible with each other, because a 1.0 reader rejects what it does not know. That is the last such break (see Compatibility below).
+
+### Added
+
+- **`scenario.constants`** (`Constants`): 20 simulator constants a coordinator plans with.
+  - Work: the grade window, the compaction settlement, the minimum work duration and the rock density.
+  - Repair and recovery: repair work per fault, for a stuck robot and per unit of wear removed, the fraction of wear a repair removes, strip and install work, the towing speed and energy factors, and the depot's service time and capacity.
+  - Drains and comms: the heater's threshold and power factor, the relay radio's power, the lost-link timeout, and mission control's mean response time.
+
+  A simulator on 1.1 always sends it. `docs/semantics.md` names each constant where it applies, so the repair work formula and the depot's first-come-first-served queue are now normative.
+- **`RobotState.tank_wh`:** the energy left in a mobile charger's tank, exact. Present only for robots with the `charge` capability.
+- **Pass windows on the Earth link** (§8.1). A scenario may schedule the link in windows.
+  - `CommsCause` gains `between_passes` for the gaps.
+  - A `comms` event with the link up carries `window_end_t`, when the link is next scheduled to go down.
+  - `expected_restore_t` is now defined as when the link is next scheduled to come up, so it is present in a gap between passes as well as in a blackout.
+  - While the link is down its cause is the first that holds of `conjunction`, `outage`, `between_passes`.
+- **Run metrics:** `RunMetrics.coverage` (`CoverageMetrics`), with `out_of_coverage_rejections` and `lost_link_returns`; and `ConditionMetrics.between_passes_s`. With `blackout_s` and `outage_s` it adds up to all the time the link was down.
+- **`examples/later/`:** messages as a simulator on a later minor version might send them, with unknown fields, event types and enumeration values. The conformance suite checks that this version's schemas reject them and that the Rust types still read them.
+- `examples/valid/SimToCoordinator/hello_1_0.json`, a 1.0 `hello`, which the suite checks is still valid.
+
+### Changed
+
+- **Compatibility** (§1.6, new). From 1.1, versions with the same MAJOR are compatible.
+  - A coordinator ignores the fields, events and Earth messages it does not know in what the simulator sends, and takes an enumeration value it does not know as unknown.
+  - A coordinator sends only what the simulator's version defines; the simulator stays strict about what it receives.
+  - The schemas stay strict and belong to one version: validate a message against the schemas of the version that produced it.
+  - §1.6 also states what a minor release may and may not do.
+- **Rust crate.**
+  - `is_compatible` implements the new rule. It also rejects versions whose MAJOR or MINOR is not a number.
+  - Every enum a simulator sends has an `Unknown` variant (`#[serde(other)]`) that takes any value this version does not define: `EventKind`, `RejectReason`, `FailReason`, `FaultCause`, `Severity`, `WeatherCondition`, `Link`, `CommsCause`, `RobotStatus`, `EndReason`, `ErrorCode`, `CapabilityName`, `PowerMode`, `Surface`, `Fallback`, `Uplink`, `Objective` and `LogEntry`. A `match` on one of them needs an arm for it. `Action` and `Downlink`, which a coordinator sends, have none.
+  - New fields: `Scenario.constants`, `RobotState.tank_wh`, `EventKind::Comms.window_end_t`, `RunMetrics.coverage` and `ConditionMetrics.between_passes_s`, all `Option`s. Code that builds these structs must set them.
+- `PROTOCOL_VERSION` and the crate version are `1.1.0`, and every schema `$id` embeds `v1.1.0`. The fixtures carry version 1.1.0.
+- A run starts at `scenario.start_t`, which need not be 0 (§2). The schemas already allowed it; the `hello` description and the README no longer say the first goal arrives at `t = 0`.
+- The appendix of `docs/semantics.md` is now the list of scenario constants, with ArcadiaBench 1.0's values for reference, and a short list of the constants no message carries.
+- README: the versioning rules, what 1.1 added, and candidates for 1.2 in place of the candidates for 1.1.
+
+### Fixed
+
+- **The coverage leak** (§4.1, §8.5; 1.0's "known limitation"). A check that looks at another robot (the target of `repair`, `tow` or `cannibalize`, the beneficiary of `cannibalize`, a mobile charger named as a `charge` source) now judges a robot that is out of coverage as it was at last contact. The command's estimate, and the cell the executor drives to, use that same state. So a rejection or an estimate no longer reveals what the coordinator has not seen. The true state counts when the executor arrives. This changes which commands a simulator accepts in that case.
 
 ## [1.0.0] - 2026-11-04
 

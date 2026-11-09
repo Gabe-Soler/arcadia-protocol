@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/Gabe-Soler/arcadia-protocol/v1.0.0/schemas/robot_state.schema.json",
+  "$id": "https://raw.githubusercontent.com/Gabe-Soler/arcadia-protocol/v1.1.0/schemas/robot_state.schema.json",
   "title": "Robot state",
   "description": "Dynamic state of one robot. Health telemetry as seen by the coordinator is noisy; ground-truth states appear only in the event log.",
   "$ref": "#/$defs/RobotState",
@@ -47,6 +47,11 @@
         "status": { "$ref": "#/$defs/RobotStatus" },
         "battery_wh": { "type": "number", "minimum": 0 },
         "payload_kg": { "type": "number", "minimum": 0 },
+        "tank_wh": {
+          "description": "Since 1.1. Energy left in a mobile charger's tank, exact. Present only for a robot with the `charge` capability.",
+          "type": "number",
+          "minimum": 0
+        },
         "current_command": {
           "description": "Command the robot is executing, if any.",
           "$ref": "common.schema.json#/$defs/Id"

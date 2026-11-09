@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/Gabe-Soler/arcadia-protocol/v1.0.0/schemas/event_log.schema.json",
+  "$id": "https://raw.githubusercontent.com/Gabe-Soler/arcadia-protocol/v1.1.0/schemas/event_log.schema.json",
   "title": "Run event log",
-  "description": "One JSON record per line (JSONL), written by the simulator for every run. Contains ground truth, so it is the input for scoring and for the replay viewer. Records are in non-decreasing `t` order. The first record is run_start and the last is run_end.",
+  "description": "One JSON record per line (JSONL), written by the simulator for every run. Contains ground truth, so it is the input for scoring and for the replay viewer. Records are in non-decreasing `t` order. The first record is run_start and the last is run_end. A tool that reads a log written by a later minor version ignores the fields and record kinds it does not know.",
   "$ref": "#/$defs/LogRecord",
   "$defs": {
     "LogRecord": {
@@ -145,9 +145,23 @@
         "energy": { "$ref": "#/$defs/EnergyMetrics" },
         "fleet": { "$ref": "#/$defs/FleetMetrics" },
         "autonomy": { "$ref": "#/$defs/AutonomyMetrics" },
-        "conditions": { "$ref": "#/$defs/ConditionMetrics" }
+        "conditions": { "$ref": "#/$defs/ConditionMetrics" },
+        "coverage": {
+          "description": "Since 1.1. A simulator on 1.1 or later always writes it; it is optional here so that a 1.0 log stays valid.",
+          "$ref": "#/$defs/CoverageMetrics"
+        }
       },
       "required": ["completed", "sols", "decisions", "commands", "commands_rejected", "quality", "energy", "fleet", "autonomy", "conditions"],
+      "additionalProperties": false
+    },
+    "CoverageMetrics": {
+      "description": "How often site coverage got in the way.",
+      "type": "object",
+      "properties": {
+        "out_of_coverage_rejections": { "description": "Commands rejected out_of_coverage.", "type": "integer", "minimum": 0 },
+        "lost_link_returns": { "description": "Lost-link drives that robots started on their own.", "type": "integer", "minimum": 0 }
+      },
+      "required": ["out_of_coverage_rejections", "lost_link_returns"],
       "additionalProperties": false
     },
     "QualityMetrics": {
@@ -206,7 +220,11 @@
       "properties": {
         "storm_s": { "$ref": "common.schema.json#/$defs/Duration" },
         "blackout_s": { "$ref": "common.schema.json#/$defs/Duration" },
-        "outage_s": { "$ref": "common.schema.json#/$defs/Duration" }
+        "outage_s": { "$ref": "common.schema.json#/$defs/Duration" },
+        "between_passes_s": {
+          "description": "Since 1.1. Time with the link down between pass windows. A simulator on 1.1 or later always writes it.",
+          "$ref": "common.schema.json#/$defs/Duration"
+        }
       },
       "required": ["storm_s", "blackout_s", "outage_s"],
       "additionalProperties": false

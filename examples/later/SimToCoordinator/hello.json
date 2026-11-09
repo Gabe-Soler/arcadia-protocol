@@ -1,0 +1,137 @@
+{
+  "type": "hello",
+  "protocol_version": "1.4.0",
+  "simulator": {
+    "name": "arcadiabench",
+    "version": "1.4.0",
+    "build": "a1b2c3d"
+  },
+  "run_id": "ice-well-small-nominal-7",
+  "seed": 7,
+  "session": {
+    "decision_timeout_s": 10
+  },
+  "scenario": {
+    "scenario_id": "ice-well-small-nominal",
+    "start_t": 31200,
+    "time_limit_t": 8908700,
+    "sol_length_s": 88775,
+    "season": "northern_summer",
+    "site": {
+      "site_id": "arcadia-pad-01",
+      "width": 60,
+      "height": 60,
+      "cell_size_m": 1.0,
+      "datum": "areoid",
+      "cells": [
+        {
+          "at": {
+            "x": 4,
+            "y": 9
+          },
+          "cell": {
+            "elevation_m": -4102.3,
+            "surface": "paved",
+            "albedo": 0.21
+          }
+        }
+      ]
+    },
+    "robots": [
+      {
+        "robot_id": "dr-1",
+        "model": "driller",
+        "mass_kg": 640,
+        "battery_capacity_wh": 20000,
+        "max_speed_m_s": 0.1,
+        "drive_energy_wh_per_m": 1.4,
+        "idle_power_w": 60,
+        "tether_m": 40,
+        "capabilities": [
+          {
+            "name": "drill",
+            "rate": 0.00002,
+            "energy_wh_per_unit": 90000,
+            "max_depth_m": 3
+          },
+          {
+            "name": "haul",
+            "rate": 0.2,
+            "energy_wh_per_unit": 0.01,
+            "capacity": 250
+          }
+        ]
+      }
+    ],
+    "stations": [
+      {
+        "station_id": "st-1",
+        "position": {
+          "x": 30,
+          "y": 6
+        },
+        "max_power_w": 40000,
+        "slots": 2,
+        "tethers": 1
+      }
+    ],
+    "depots": [],
+    "power": {
+      "mode": "solar_with_rtg",
+      "fission_w": 0,
+      "solar_peak_w": 100000,
+      "storage_capacity_wh": 400000,
+      "essential_load_w": 2000,
+      "rtg_w": 2000
+    },
+    "base_station": {
+      "position": {
+        "x": 30,
+        "y": 8
+      },
+      "range_m": 33
+    },
+    "policy": {
+      "policy_version": 1,
+      "default_level": 1,
+      "levels": {
+        "drill": 2
+      },
+      "level3": {
+        "max_wait_s": 3600,
+        "default_fallback": "defer"
+      }
+    },
+    "constants": {
+      "grade_window_m": 0.15,
+      "compaction_settlement_m": 0.04,
+      "min_work_duration_s": 5,
+      "rock_density_kg_m3": 2800,
+      "repair_work_degraded": 0.25,
+      "repair_work_disabled": 1.0,
+      "repair_work_stuck": 0.5,
+      "repair_work_per_wear_removed": 0.3,
+      "repair_wear_removed_fraction": 0.5,
+      "strip_work": 0.5,
+      "install_work": 1.0,
+      "tow_speed_factor": 0.5,
+      "tow_energy_factor": 2.0,
+      "depot_service_s": 7200,
+      "depot_capacity": 1,
+      "heater_threshold_c": -60,
+      "heater_power_factor": 1.0,
+      "relay_radio_w": 25,
+      "lost_link_timeout_s": 1800,
+      "earth_response_mean_s": 14400,
+      "ice_hardness_factor": 6.0
+    },
+    "earth_link": {
+      "blackouts": [
+        {
+          "start_t": 1775500,
+          "end_t": 3018350
+        }
+      ]
+    }
+  }
+}

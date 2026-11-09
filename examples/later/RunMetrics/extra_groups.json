@@ -1,0 +1,53 @@
+{
+  "completed": true,
+  "sols": 36.04,
+  "decisions": 412,
+  "commands": 655,
+  "commands_rejected": 3,
+  "wall_clock_s": 1.82,
+  "quality": {
+    "cells_total": 400,
+    "cells_in_spec": 400,
+    "rms_error_m": 0.012,
+    "max_abs_error_m": 0.041,
+    "max_slope_deg": 1.7,
+    "berm_complete": true,
+    "verified": true
+  },
+  "energy": {
+    "robot_energy_wh": 812345.6,
+    "grid_energy_wh": 790112.0,
+    "min_storage_wh": 18250.0,
+    "min_storage_fraction": 0.1825,
+    "deficit_s": 5400,
+    "curtailed_wh": 91000.0
+  },
+  "fleet": {
+    "faults": 7,
+    "robot_hours_lost": 61.5,
+    "robots_lost": 0
+  },
+  "autonomy": {
+    "downlink_messages": 52,
+    "approval_requests": 2,
+    "notifications": 9,
+    "status_reports": 41,
+    "approval_wait_s": 3100.0,
+    "policy_violations": 0
+  },
+  "conditions": {
+    "storm_s": 512000.0,
+    "blackout_s": 0,
+    "outage_s": 14400.0,
+    "between_passes_s": 2310000.0,
+    "frost_s": 40500.0
+  },
+  "coverage": {
+    "out_of_coverage_rejections": 2,
+    "lost_link_returns": 1,
+    "relay_hours": 14.5
+  },
+  "production": {
+    "ice_kg": 1210.0
+  }
+}
